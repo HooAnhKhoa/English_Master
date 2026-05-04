@@ -1,0 +1,122 @@
+{
+  "name": "englishmaster-backend",
+  "version": "1.0.0",
+  "description": "EnglishMaster Backend API Documentation",
+  "info": {
+    "title": "EnglishMaster API",
+    "version": "1.0.0",
+    "description": "RESTful API for EnglishMaster - English Learning Platform",
+    "contact": {
+      "name": "API Support",
+      "email": "support@englishmaster.com"
+    }
+  },
+  "servers": [
+    {
+      "url": "http://localhost:5000/api/v1",
+      "description": "Development server"
+    },
+    {
+      "url": "https://api.englishmaster.com/api/v1",
+      "description": "Production server"
+    }
+  ],
+  "tags": [
+    {
+      "name": "Authentication",
+      "description": "User authentication endpoints"
+    },
+    {
+      "name": "Users",
+      "description": "User management endpoints"
+    },
+    {
+      "name": "Topics",
+      "description": "Topic management endpoints"
+    },
+    {
+      "name": "Vocabularies",
+      "description": "Vocabulary management endpoints"
+    },
+    {
+      "name": "Lessons",
+      "description": "Lesson management endpoints"
+    },
+    {
+      "name": "Exercises",
+      "description": "Exercise management endpoints"
+    },
+    {
+      "name": "Progress",
+      "description": "User progress tracking endpoints"
+    },
+    {
+      "name": "AI",
+      "description": "AI conversation endpoints"
+    },
+    {
+      "name": "Videos",
+      "description": "Video lesson endpoints"
+    },
+    {
+      "name": "Rankings",
+      "description": "Leaderboard and ranking endpoints"
+    },
+    {
+      "name": "Badges",
+      "description": "Badge and achievement endpoints"
+    },
+    {
+      "name": "Dictionary",
+      "description": "Dictionary lookup endpoints"
+    },
+    {
+      "name": "Notifications",
+      "description": "Notification management endpoints"
+    }
+  ],
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    },
+    "schemas": {
+      "User": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "integer" },
+          "username": { "type": "string" },
+          "email": { "type": "string" },
+          "full_name": { "type": "string" },
+          "avatar": { "type": "string" },
+          "role": { "type": "string", "enum": ["user", "admin"] },
+          "level": { "type": "string", "enum": ["beginner", "elementary", "intermediate", "upper-intermediate", "advanced"] },
+          "xp": { "type": "integer" },
+          "coins": { "type": "integer" },
+          "streak": { "type": "integer" },
+          "total_words_learned": { "type": "integer" },
+          "total_lessons_completed": { "type": "integer" }
+        }
+      },
+      "Error": {
+        "type": "object",
+        "properties": {
+          "success": { "type": "boolean", "example": false },
+          "message": { "type": "string" },
+          "errors": { "type": "array" }
+        }
+      },
+      "Success": {
+        "type": "object",
+        "properties": {
+          "success": { "type": "boolean", "example": true },
+          "message": { "type": "string" },
+          "data": { "type": "object" }
+        }
+      }
+    }
+  }
+}

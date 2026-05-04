@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Simple Test</title>
+</head>
+<body>
+    <h1>Simple Test Page</h1>
+    <p>If you see this, the server is working!</p>
+    <div id="result"></div>
+    <script>
+        document.getElementById('result').innerHTML = 'JavaScript is working!';
+
+        // Test fetch - use Tailscale IP
+        fetch('http://100.90.68.89:5000/health')
+            .then(r => r.json())
+            .then(d => {
+                document.getElementById('result').innerHTML += '<br>Backend: ' + d.message;
+            })
+            .catch(e => {
+                document.getElementById('result').innerHTML += '<br>Error: ' + e.message;
+            });
+    </script>
+</body>
+</html>
