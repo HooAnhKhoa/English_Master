@@ -54,8 +54,8 @@ if (process.env.NODE_ENV === 'development') {
 // Rate limiting
 app.use('/api/', apiLimiter);
 
-// Static files
-app.use('/uploads', express.static('public/uploads'));
+// Static files - serve uploaded avatars
+app.use('/uploads', express.static('uploads'));
 
 // Health check endpoint
 app.get('/health', (req, res) => {
@@ -87,6 +87,7 @@ app.use(`/api/${API_VERSION}/notifications`, require('./routes/notification.rout
 app.use(`/api/${API_VERSION}/vocab`, require('./routes/vocab.routes'));
 app.use(`/api/${API_VERSION}/review`, require('./routes/review.routes'));
 app.use(`/api/${API_VERSION}/admin`, require('./routes/admin.routes'));
+app.use(`/api/${API_VERSION}/user`, require('./routes/profile.routes'));
 
 // 404 handler
 app.use(notFound);

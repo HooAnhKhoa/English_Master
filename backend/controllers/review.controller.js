@@ -381,7 +381,7 @@ exports.generateQuiz = async (req, res) => {
     const createdQuestions = await QuizQuestion.findAll({
       where: { quiz_id: quiz.id },
       order: [['order_index', 'ASC']],
-      attributes: ['id', 'question_type', 'question_text', 'options', 'order_index']
+      attributes: ['id', 'question_type', 'question_text', 'correct_answer', 'options', 'order_index']
     });
 
     const estimatedTime = questionCount * 30; // 30 seconds per question

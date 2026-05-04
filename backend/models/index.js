@@ -99,6 +99,10 @@ Ranking.belongsTo(User, { foreignKey: 'user_id', as: 'user' });
 // Badge associations
 Badge.belongsToMany(User, { through: 'user_badges', foreignKey: 'badge_id', as: 'users' });
 
+// UserBadge associations
+UserBadge.belongsTo(User, { foreignKey: 'user_id', as: 'user' });
+UserBadge.belongsTo(Badge, { foreignKey: 'badge_id', as: 'badge' });
+
 // Notification associations
 Notification.belongsTo(User, { foreignKey: 'user_id', as: 'user' });
 

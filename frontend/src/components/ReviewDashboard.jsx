@@ -84,7 +84,7 @@ const ReviewDashboard = () => {
           icon={<WarningOutlined />}
           style={{ marginBottom: '24px' }}
           action={
-            <Button type="primary" size="small" onClick={() => navigate('/review/vocab')}>
+            <Button type="primary" size="small" onClick={() => navigate('review/vocab')}>
               Bắt đầu ôn
             </Button>
           }
@@ -96,7 +96,7 @@ const ReviewDashboard = () => {
         <Col xs={24} sm={24} md={8}>
           <Card
             hoverable
-            onClick={() => navigate('/review/vocab')}
+            onClick={() => navigate('review/vocab')}
             style={{
               background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
               color: 'white',
@@ -126,7 +126,7 @@ const ReviewDashboard = () => {
         <Col xs={24} sm={24} md={8}>
           <Card
             hoverable
-            onClick={() => navigate('/review/quiz')}
+            onClick={() => navigate('review/quiz')}
             style={{
               background: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
               color: 'white',
@@ -158,7 +158,7 @@ const ReviewDashboard = () => {
             hoverable
             onClick={() => {
               if (weakAreas.length > 0) {
-                navigate(`/review/quiz?topicId=${weakAreas[0].topicId}`);
+                navigate(`review/quiz?topicId=${weakAreas[0].topicId}`);
               }
             }}
             style={{
@@ -277,7 +277,7 @@ const ReviewDashboard = () => {
                 <Card
                   size="small"
                   hoverable
-                  onClick={() => navigate(`/review/quiz?topicId=${area.topicId}`)}
+                  onClick={() => navigate(`review/quiz?topicId=${area.topicId}`)}
                 >
                   <div style={{ marginBottom: '12px' }}>
                     <h3 style={{ marginBottom: '4px' }}>{area.name}</h3>

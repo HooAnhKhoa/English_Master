@@ -552,8 +552,8 @@ exports.getTodayVocab = async (req, res) => {
           ],
         },
       ],
-      limit: quota.reviewWords,
-      order: [['next_review', 'ASC']],
+      limit: 10, // Random 10 words
+      order: [[sequelize.fn('RAND')]], // Random order
     });
 
     // Get new words to learn (not started yet)

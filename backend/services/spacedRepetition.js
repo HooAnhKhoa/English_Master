@@ -42,7 +42,7 @@ function calculateNextReview(quality, efFactor = 2.5, interval = 1, repetitions 
   // If quality < 3, reset repetitions and interval
   if (quality < 3) {
     nextRepetitions = 0;
-    nextInterval = 1;
+    nextInterval = 0; // Review again today, not tomorrow
   } else {
     // Correct response
     if (repetitions === 0) {

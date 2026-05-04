@@ -78,8 +78,10 @@ function Dashboard({ user, onLogout }) {
     <div style={{
       minHeight: '100vh',
       background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-      padding: '20px'
-    }}>
+      padding: '20px',
+      paddingBottom: '80px' // Space for mobile bottom nav
+    }}
+    className="dashboard-container">
       {/* Welcome Header */}
       <div style={{
         padding: '20px 10px',
@@ -409,6 +411,56 @@ function Dashboard({ user, onLogout }) {
         @keyframes spin {
           0% { transform: rotate(0deg); }
           100% { transform: rotate(360deg); }
+        }
+
+        /* Mobile Responsive Styles */
+        @media (max-width: 768px) {
+          .dashboard-container {
+            padding: 12px !important;
+            padding-bottom: 80px !important;
+          }
+
+          .dashboard-container h1 {
+            font-size: 20px !important;
+          }
+
+          .dashboard-container h2 {
+            font-size: 18px !important;
+          }
+
+          .dashboard-container > div:first-child {
+            padding: 12px 8px !important;
+          }
+
+          .dashboard-container > div:first-child > div {
+            gap: 10px !important;
+          }
+
+          .dashboard-container > div:first-child > div > div:first-child {
+            width: 50px !important;
+            height: 50px !important;
+            font-size: 24px !important;
+          }
+
+          .dashboard-container button {
+            padding: 14px !important;
+            font-size: 15px !important;
+          }
+        }
+
+        @media (max-width: 576px) {
+          .dashboard-container {
+            padding: 8px !important;
+            padding-bottom: 80px !important;
+          }
+
+          .dashboard-container h1 {
+            font-size: 18px !important;
+          }
+
+          .dashboard-container h2 {
+            font-size: 16px !important;
+          }
         }
       `}</style>
     </div>

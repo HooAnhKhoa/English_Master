@@ -194,15 +194,14 @@ const FlashCardSession = ({ user, onLogout }) => {
       if (response.success) {
         const { toReview, newWords: newWordsData, todayStats } = response.data;
 
-        // Combine review words and new words
+        // Only use review words (10 random learned words), no new words
         const reviewVocabs = toReview.map(item => item.vocab).filter(v => v.is_active !== false);
-        const allVocabs = [...reviewVocabs, ...newWordsData.filter(v => v.is_active !== false)];
 
-        setVocabList(allVocabs);
-        setNewWords(newWordsData.map(v => v.id));
+        setVocabList(reviewVocabs);
+        setNewWords([]);
         setStats(todayStats);
 
-        if (allVocabs.length === 0) {
+        if (reviewVocabs.length === 0) {
           setSessionComplete(true);
         }
       }

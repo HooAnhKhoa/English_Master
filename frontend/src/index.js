@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import ReactDOM from 'react-dom/client';
 import './index.css';
+import './styles/mobile.css';
 import 'antd/dist/reset.css';
 import { io } from 'socket.io-client';
 import LoginPage from './LoginPage';
@@ -26,6 +27,7 @@ import DictionaryPage from './components/DictionaryPage';
 import ReviewDashboard from './components/ReviewDashboard';
 import QuizSession from './components/QuizSession';
 import ReviewHistory from './components/ReviewHistory';
+import ProfilePage from './components/ProfilePage';
 
 const SOCKET_URL = process.env.REACT_APP_SOCKET_URL || 'http://localhost:5000';
 
@@ -280,35 +282,7 @@ function App() {
         );
 
       case 'profile':
-        return (
-          <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 p-8">
-            <div className="max-w-4xl mx-auto bg-white rounded-2xl shadow-lg p-8">
-              <h1 className="text-3xl font-bold text-gray-800 mb-4">👤 Profile</h1>
-              <div className="space-y-4">
-                <div>
-                  <label className="text-gray-600 font-semibold">Name:</label>
-                  <p className="text-gray-800">{user.full_name || user.username}</p>
-                </div>
-                <div>
-                  <label className="text-gray-600 font-semibold">Email:</label>
-                  <p className="text-gray-800">{user.email}</p>
-                </div>
-                <div>
-                  <label className="text-gray-600 font-semibold">Level:</label>
-                  <p className="text-gray-800 capitalize">{user.level || 1}</p>
-                </div>
-                <div>
-                  <label className="text-gray-600 font-semibold">XP:</label>
-                  <p className="text-gray-800">{user.xp || 0}</p>
-                </div>
-                <div>
-                  <label className="text-gray-600 font-semibold">Streak:</label>
-                  <p className="text-gray-800">{user.streak || 0} days 🔥</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        );
+        return <ProfilePage user={user} onLogout={handleLogout} />;
 
       default:
         return <Dashboard user={user} onLogout={handleLogout} />;
