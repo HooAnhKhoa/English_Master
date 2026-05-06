@@ -4,6 +4,14 @@ function Dashboard({ user, onLogout }) {
   const [stats, setStats] = useState(null);
   const [vocabToday, setVocabToday] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [recentActivity, setRecentActivity] = useState([]);
+  const [weeklyProgress, setWeeklyProgress] = useState([]);
+  const [collapsedSections, setCollapsedSections] = useState({
+    todayGoal: false,
+    progress: false,
+    weeklyChart: false,
+    recentActivity: false
+  });
 
   useEffect(() => {
     loadDashboardData();
@@ -36,11 +44,44 @@ function Dashboard({ user, onLogout }) {
       if (statsData.success) {
         setStats(statsData.data);
       }
+
+      // Generate weekly progress data (last 7 days)
+      const weeklyData = [];
+      for (let i = 6; i >= 0; i--) {
+        const date = new Date();
+        date.setDate(date.getDate() - i);
+        const dayName = date.toLocaleDateString('en-US', { weekday: 'short' });
+
+        // Simulate progress data (in real app, fetch from backend)
+        weeklyData.push({
+          day: dayName,
+          learned: Math.floor(Math.random() * 20) + 5,
+          reviewed: Math.floor(Math.random() * 30) + 10
+        });
+      }
+      setWeeklyProgress(weeklyData);
+
+      // Generate recent activity (in real app, fetch from backend)
+      const activities = [
+        { id: 1, type: 'learned', count: 15, topic: 'Business English', time: '2 hours ago', icon: '📚' },
+        { id: 2, type: 'reviewed', count: 25, topic: 'Daily Conversation', time: '5 hours ago', icon: '✅' },
+        { id: 3, type: 'quiz', score: 85, topic: 'Grammar', time: '1 day ago', icon: '🎯' },
+        { id: 4, type: 'streak', days: user.streak || 0, time: 'Current', icon: '🔥' }
+      ];
+      setRecentActivity(activities);
+
     } catch (error) {
       console.error('Error loading dashboard:', error);
     } finally {
       setLoading(false);
     }
+  };
+
+  const toggleSection = (section) => {
+    setCollapsedSections(prev => ({
+      ...prev,
+      [section]: !prev[section]
+    }));
   };
 
   const handleLogout = () => {
@@ -208,101 +249,260 @@ function Dashboard({ user, onLogout }) {
         boxShadow: '0 8px 24px rgba(0,0,0,0.05)',
         marginBottom: '20px'
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', marginBottom: '20px' }}>
-          <span style={{ fontSize: '24px', marginRight: '10px' }}>📖</span>
-          <h2 style={{ margin: 0, color: '#333', fontSize: '20px' }}>Today's Goal</h2>
-        </div>
-
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(3, 1fr)',
-          gap: '10px',
-          marginBottom: '25px'
-        }}>
-          <div style={{
-            padding: '15px 10px',
-            background: '#f0f4ff',
-            borderRadius: '12px',
-            textAlign: 'center',
-            border: '1px solid #e0e7ff'
-          }}>
-            <div style={{ fontSize: '20px', fontWeight: 'bold', color: '#4f46e5' }}>
-              {vocabToday?.todayStats?.dueCount || 0}
-            </div>
-            <div style={{ color: '#6366f1', fontSize: '11px', fontWeight: '600', marginTop: '4px' }}>REVIEW</div>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
+          <div style={{ display: 'flex', alignItems: 'center' }}>
+            <span style={{ fontSize: '24px', marginRight: '10px' }}>📖</span>
+            <h2 style={{ margin: 0, color: '#333', fontSize: '20px' }}>Today's Goal</h2>
           </div>
-
-          <div style={{
-            padding: '15px 10px',
-            background: '#f0fdf4',
-            borderRadius: '12px',
-            textAlign: 'center',
-            border: '1px solid #dcfce7'
-          }}>
-            <div style={{ fontSize: '20px', fontWeight: 'bold', color: '#16a34a' }}>
-              {vocabToday?.todayStats?.newAvailable || 0}
-            </div>
-            <div style={{ color: '#22c55e', fontSize: '11px', fontWeight: '600', marginTop: '4px' }}>NEW</div>
-          </div>
-
-          <div style={{
-            padding: '15px 10px',
-            background: '#fff7ed',
-            borderRadius: '12px',
-            textAlign: 'center',
-            border: '1px solid #ffedd5'
-          }}>
-            <div style={{ fontSize: '20px', fontWeight: 'bold', color: '#ea580c' }}>
-              {vocabToday?.todayStats?.reviewed || 0}
-            </div>
-            <div style={{ color: '#f97316', fontSize: '11px', fontWeight: '600', marginTop: '4px' }}>LEARNED</div>
-          </div>
-        </div>
-
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-          <button
-            onClick={() => window.location.hash = 'flashcards'}
-            style={{
-              padding: '16px',
-              border: 'none',
-              borderRadius: '15px',
-              background: '#4f46e5',
-              color: 'white',
-              fontSize: '16px',
-              fontWeight: 'bold',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: '10px',
-              boxShadow: '0 4px 15px rgba(79, 70, 229, 0.3)',
-              transition: 'all 0.2s'
-            }}
+          <span
+            onClick={() => toggleSection('todayGoal')}
+            style={{ cursor: 'pointer', fontSize: '18px', color: '#666' }}
           >
-            <span>🚀</span> Start Flashcards
-          </button>
-
-          <button
-            onClick={() => window.location.hash = 'ai-conversation'}
-            style={{
-              padding: '16px',
-              border: '1px solid #e5e7eb',
-              borderRadius: '15px',
-              background: 'white',
-              color: '#374151',
-              fontSize: '16px',
-              fontWeight: 'bold',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: '10px',
-              transition: 'all 0.2s'
-            }}
-          >
-            <span>🤖</span> Practice with AI
-          </button>
+            {collapsedSections.todayGoal ? '▼' : '▲'}
+          </span>
         </div>
+
+        {!collapsedSections.todayGoal && (
+          <>
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(3, 1fr)',
+              gap: '10px',
+              marginBottom: '25px'
+            }}>
+              <div style={{
+                padding: '15px 10px',
+                background: '#f0f4ff',
+                borderRadius: '12px',
+                textAlign: 'center',
+                border: '1px solid #e0e7ff'
+              }}>
+                <div style={{ fontSize: '20px', fontWeight: 'bold', color: '#4f46e5' }}>
+                  {vocabToday?.todayStats?.dueCount || 0}
+                </div>
+                <div style={{ color: '#6366f1', fontSize: '11px', fontWeight: '600', marginTop: '4px' }}>REVIEW</div>
+              </div>
+
+              <div style={{
+                padding: '15px 10px',
+                background: '#f0fdf4',
+                borderRadius: '12px',
+                textAlign: 'center',
+                border: '1px solid #dcfce7'
+              }}>
+                <div style={{ fontSize: '20px', fontWeight: 'bold', color: '#16a34a' }}>
+                  {vocabToday?.todayStats?.newAvailable || 0}
+                </div>
+                <div style={{ color: '#22c55e', fontSize: '11px', fontWeight: '600', marginTop: '4px' }}>NEW</div>
+              </div>
+
+              <div style={{
+                padding: '15px 10px',
+                background: '#fff7ed',
+                borderRadius: '12px',
+                textAlign: 'center',
+                border: '1px solid #ffedd5'
+              }}>
+                <div style={{ fontSize: '20px', fontWeight: 'bold', color: '#ea580c' }}>
+                  {vocabToday?.todayStats?.reviewed || 0}
+                </div>
+                <div style={{ color: '#f97316', fontSize: '11px', fontWeight: '600', marginTop: '4px' }}>LEARNED</div>
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <button
+                onClick={() => window.location.hash = 'flashcards'}
+                style={{
+                  padding: '16px',
+                  border: 'none',
+                  borderRadius: '15px',
+                  background: '#4f46e5',
+                  color: 'white',
+                  fontSize: '16px',
+                  fontWeight: 'bold',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '10px',
+                  boxShadow: '0 4px 15px rgba(79, 70, 229, 0.3)',
+                  transition: 'all 0.2s'
+                }}
+              >
+                <span>🚀</span> Start Flashcards
+              </button>
+
+              <button
+                onClick={() => window.location.hash = 'ai-conversation'}
+                style={{
+                  padding: '16px',
+                  border: '1px solid #e5e7eb',
+                  borderRadius: '15px',
+                  background: 'white',
+                  color: '#374151',
+                  fontSize: '16px',
+                  fontWeight: 'bold',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '10px',
+                  transition: 'all 0.2s'
+                }}
+              >
+                <span>🤖</span> Practice with AI
+              </button>
+            </div>
+          </>
+        )}
+      </div>
+
+      {/* Weekly Progress Chart */}
+      <div style={{
+        background: 'white',
+        borderRadius: '20px',
+        padding: '25px',
+        boxShadow: '0 8px 24px rgba(0,0,0,0.05)',
+        marginBottom: '20px'
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
+          <div style={{ display: 'flex', alignItems: 'center' }}>
+            <span style={{ fontSize: '24px', marginRight: '10px' }}>📈</span>
+            <h2 style={{ margin: 0, color: '#333', fontSize: '20px' }}>Weekly Progress</h2>
+          </div>
+          <span
+            onClick={() => toggleSection('weeklyChart')}
+            style={{ cursor: 'pointer', fontSize: '18px', color: '#666' }}
+          >
+            {collapsedSections.weeklyChart ? '▼' : '▲'}
+          </span>
+        </div>
+
+        {!collapsedSections.weeklyChart && (
+          <div style={{ overflowX: 'auto' }}>
+            <div style={{ display: 'flex', gap: '8px', minWidth: '100%', justifyContent: 'space-between' }}>
+              {weeklyProgress.map((day, index) => (
+                <div key={index} style={{ flex: 1, textAlign: 'center', minWidth: '40px' }}>
+                  <div style={{
+                    height: '120px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'flex-end',
+                    marginBottom: '8px'
+                  }}>
+                    <div style={{
+                      background: '#4f46e5',
+                      borderRadius: '8px 8px 0 0',
+                      height: `${(day.learned / 25) * 100}%`,
+                      minHeight: '10px',
+                      marginBottom: '2px'
+                    }}></div>
+                    <div style={{
+                      background: '#22c55e',
+                      borderRadius: '8px 8px 0 0',
+                      height: `${(day.reviewed / 40) * 100}%`,
+                      minHeight: '10px'
+                    }}></div>
+                  </div>
+                  <div style={{ fontSize: '11px', fontWeight: 'bold', color: '#666' }}>{day.day}</div>
+                  <div style={{ fontSize: '10px', color: '#999' }}>{day.learned + day.reviewed}</div>
+                </div>
+              ))}
+            </div>
+            <div style={{ display: 'flex', gap: '15px', justifyContent: 'center', marginTop: '15px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                <div style={{ width: '12px', height: '12px', background: '#4f46e5', borderRadius: '3px' }}></div>
+                <span style={{ fontSize: '12px', color: '#666' }}>Learned</span>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                <div style={{ width: '12px', height: '12px', background: '#22c55e', borderRadius: '3px' }}></div>
+                <span style={{ fontSize: '12px', color: '#666' }}>Reviewed</span>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Recent Activity */}
+      <div style={{
+        background: 'white',
+        borderRadius: '20px',
+        padding: '25px',
+        boxShadow: '0 8px 24px rgba(0,0,0,0.05)',
+        marginBottom: '20px'
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
+          <div style={{ display: 'flex', alignItems: 'center' }}>
+            <span style={{ fontSize: '24px', marginRight: '10px' }}>🎯</span>
+            <h2 style={{ margin: 0, color: '#333', fontSize: '20px' }}>Recent Activity</h2>
+          </div>
+          <span
+            onClick={() => toggleSection('recentActivity')}
+            style={{ cursor: 'pointer', fontSize: '18px', color: '#666' }}
+          >
+            {collapsedSections.recentActivity ? '▼' : '▲'}
+          </span>
+        </div>
+
+        {!collapsedSections.recentActivity && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            {recentActivity.map(activity => (
+              <div key={activity.id} style={{
+                display: 'flex',
+                alignItems: 'center',
+                padding: '12px',
+                background: '#f9fafb',
+                borderRadius: '12px',
+                gap: '12px'
+              }}>
+                <div style={{ fontSize: '28px' }}>{activity.icon}</div>
+                <div style={{ flex: 1 }}>
+                  {activity.type === 'learned' && (
+                    <>
+                      <div style={{ fontWeight: 'bold', color: '#333', fontSize: '14px' }}>
+                        Learned {activity.count} new words
+                      </div>
+                      <div style={{ fontSize: '12px', color: '#666' }}>
+                        {activity.topic} • {activity.time}
+                      </div>
+                    </>
+                  )}
+                  {activity.type === 'reviewed' && (
+                    <>
+                      <div style={{ fontWeight: 'bold', color: '#333', fontSize: '14px' }}>
+                        Reviewed {activity.count} words
+                      </div>
+                      <div style={{ fontSize: '12px', color: '#666' }}>
+                        {activity.topic} • {activity.time}
+                      </div>
+                    </>
+                  )}
+                  {activity.type === 'quiz' && (
+                    <>
+                      <div style={{ fontWeight: 'bold', color: '#333', fontSize: '14px' }}>
+                        Quiz Score: {activity.score}%
+                      </div>
+                      <div style={{ fontSize: '12px', color: '#666' }}>
+                        {activity.topic} • {activity.time}
+                      </div>
+                    </>
+                  )}
+                  {activity.type === 'streak' && (
+                    <>
+                      <div style={{ fontWeight: 'bold', color: '#333', fontSize: '14px' }}>
+                        {activity.days} Day Streak!
+                      </div>
+                      <div style={{ fontSize: '12px', color: '#666' }}>
+                        Keep it up! • {activity.time}
+                      </div>
+                    </>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Progress Overview */}
@@ -312,99 +512,111 @@ function Dashboard({ user, onLogout }) {
         padding: '30px',
         boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
       }}>
-        <h2 style={{ marginTop: 0, color: '#333' }}>📊 Progress Overview</h2>
-
-        <div style={{ marginBottom: '20px' }}>
-          <div style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            marginBottom: '8px'
-          }}>
-            <span style={{ color: '#666' }}>Not Started</span>
-            <span style={{ fontWeight: 'bold', color: '#333' }}>{stats?.notStarted || 0}</span>
-          </div>
-          <div style={{
-            height: '8px',
-            background: '#e0e0e0',
-            borderRadius: '4px',
-            overflow: 'hidden'
-          }}>
-            <div style={{
-              height: '100%',
-              background: '#cbd5e0',
-              width: `${stats?.notStarted ? (stats.notStarted / (stats.notStarted + stats.total) * 100) : 0}%`
-            }}></div>
-          </div>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
+          <h2 style={{ margin: 0, color: '#333' }}>📊 Progress Overview</h2>
+          <span
+            onClick={() => toggleSection('progress')}
+            style={{ cursor: 'pointer', fontSize: '18px', color: '#666' }}
+          >
+            {collapsedSections.progress ? '▼' : '▲'}
+          </span>
         </div>
 
-        <div style={{ marginBottom: '20px' }}>
-          <div style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            marginBottom: '8px'
-          }}>
-            <span style={{ color: '#666' }}>In Progress</span>
-            <span style={{ fontWeight: 'bold', color: '#333' }}>{stats?.inProgress || 0}</span>
-          </div>
-          <div style={{
-            height: '8px',
-            background: '#e0e0e0',
-            borderRadius: '4px',
-            overflow: 'hidden'
-          }}>
-            <div style={{
-              height: '100%',
-              background: '#667eea',
-              width: `${stats?.total ? (stats.inProgress / stats.total * 100) : 0}%`
-            }}></div>
-          </div>
-        </div>
+        {!collapsedSections.progress && (
+          <>
+            <div style={{ marginBottom: '20px' }}>
+              <div style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                marginBottom: '8px'
+              }}>
+                <span style={{ color: '#666' }}>Not Started</span>
+                <span style={{ fontWeight: 'bold', color: '#333' }}>{stats?.notStarted || 0}</span>
+              </div>
+              <div style={{
+                height: '8px',
+                background: '#e0e0e0',
+                borderRadius: '4px',
+                overflow: 'hidden'
+              }}>
+                <div style={{
+                  height: '100%',
+                  background: '#cbd5e0',
+                  width: `${stats?.notStarted ? (stats.notStarted / (stats.notStarted + stats.total) * 100) : 0}%`
+                }}></div>
+              </div>
+            </div>
 
-        <div style={{ marginBottom: '20px' }}>
-          <div style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            marginBottom: '8px'
-          }}>
-            <span style={{ color: '#666' }}>Completed</span>
-            <span style={{ fontWeight: 'bold', color: '#333' }}>{stats?.completed || 0}</span>
-          </div>
-          <div style={{
-            height: '8px',
-            background: '#e0e0e0',
-            borderRadius: '4px',
-            overflow: 'hidden'
-          }}>
-            <div style={{
-              height: '100%',
-              background: '#48bb78',
-              width: `${stats?.total ? (stats.completed / stats.total * 100) : 0}%`
-            }}></div>
-          </div>
-        </div>
+            <div style={{ marginBottom: '20px' }}>
+              <div style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                marginBottom: '8px'
+              }}>
+                <span style={{ color: '#666' }}>In Progress</span>
+                <span style={{ fontWeight: 'bold', color: '#333' }}>{stats?.inProgress || 0}</span>
+              </div>
+              <div style={{
+                height: '8px',
+                background: '#e0e0e0',
+                borderRadius: '4px',
+                overflow: 'hidden'
+              }}>
+                <div style={{
+                  height: '100%',
+                  background: '#667eea',
+                  width: `${stats?.total ? (stats.inProgress / stats.total * 100) : 0}%`
+                }}></div>
+              </div>
+            </div>
 
-        <div>
-          <div style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            marginBottom: '8px'
-          }}>
-            <span style={{ color: '#666' }}>Mastered</span>
-            <span style={{ fontWeight: 'bold', color: '#333' }}>{stats?.mastered || 0}</span>
-          </div>
-          <div style={{
-            height: '8px',
-            background: '#e0e0e0',
-            borderRadius: '4px',
-            overflow: 'hidden'
-          }}>
-            <div style={{
-              height: '100%',
-              background: '#f6ad55',
-              width: `${stats?.total ? (stats.mastered / stats.total * 100) : 0}%`
-            }}></div>
-          </div>
-        </div>
+            <div style={{ marginBottom: '20px' }}>
+              <div style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                marginBottom: '8px'
+              }}>
+                <span style={{ color: '#666' }}>Completed</span>
+                <span style={{ fontWeight: 'bold', color: '#333' }}>{stats?.completed || 0}</span>
+              </div>
+              <div style={{
+                height: '8px',
+                background: '#e0e0e0',
+                borderRadius: '4px',
+                overflow: 'hidden'
+              }}>
+                <div style={{
+                  height: '100%',
+                  background: '#48bb78',
+                  width: `${stats?.total ? (stats.completed / stats.total * 100) : 0}%`
+                }}></div>
+              </div>
+            </div>
+
+            <div>
+              <div style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                marginBottom: '8px'
+              }}>
+                <span style={{ color: '#666' }}>Mastered</span>
+                <span style={{ fontWeight: 'bold', color: '#333' }}>{stats?.mastered || 0}</span>
+              </div>
+              <div style={{
+                height: '8px',
+                background: '#e0e0e0',
+                borderRadius: '4px',
+                overflow: 'hidden'
+              }}>
+                <div style={{
+                  height: '100%',
+                  background: '#f6ad55',
+                  width: `${stats?.total ? (stats.mastered / stats.total * 100) : 0}%`
+                }}></div>
+              </div>
+            </div>
+          </>
+        )}
       </div>
 
       <style>{`

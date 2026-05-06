@@ -103,6 +103,9 @@ const getTopic = asyncHandler(async (req, res) => {
     throw new ApiError(404, 'Topic not found');
   }
 
+  // Increment access count
+  await topic.increment('access_count');
+
   res.status(200).json({
     success: true,
     data: topic,
@@ -249,6 +252,27 @@ const getTopicVocabularies = asyncHandler(async (req, res) => {
   });
 });
 
+/**
+ * @desc    Get topic access statistics
+ * @route   GET /api/v1/topics/stats/access
+ * @access  Private/Admin
+ */
+const getTopicAccessStats = asyncHandler(async (req, res) => {
+  const { limit = 10 } = req.query;
+
+  const topics = await Topic.findAll({
+    where: { is_active: true },
+    order: [['access_count', 'DESC']],
+    limit: parseInt(limit),
+    attributes: ['id', 'name', 'name_vi', 'icon', 'access_count', 'word_count'],
+  });
+
+  res.status(200).json({
+    success: true,
+    data: topics,
+  });
+});
+
 module.exports = {
   getAllTopics,
   getTopic,
@@ -256,4 +280,5 @@ module.exports = {
   updateTopic,
   deleteTopic,
   getTopicVocabularies,
+  getTopicAccessStats,
 };

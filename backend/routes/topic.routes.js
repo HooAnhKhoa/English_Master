@@ -7,6 +7,7 @@ const {
   updateTopic,
   deleteTopic,
   getTopicVocabularies,
+  getTopicAccessStats,
 } = require('../controllers/topic.controller');
 const { verifyToken, isAdmin, optionalAuth } = require('../middleware/auth');
 const { body } = require('express-validator');
@@ -73,6 +74,7 @@ const updateTopicValidation = [
 ];
 
 // Routes
+router.get('/stats/access', verifyToken, isAdmin, getTopicAccessStats);
 router.get('/', optionalAuth, getAllTopics);
 router.get('/:id', optionalAuth, getTopic);
 router.post('/', verifyToken, isAdmin, createTopicValidation, validate, createTopic);

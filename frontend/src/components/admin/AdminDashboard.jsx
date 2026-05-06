@@ -8,7 +8,10 @@ import {
   ThunderboltOutlined,
   ClockCircleOutlined,
   FolderOutlined,
-  VideoCameraOutlined
+  VideoCameraOutlined,
+  EyeOutlined,
+  UpOutlined,
+  DownOutlined
 } from '@ant-design/icons';
 import {
   LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer
@@ -30,8 +33,18 @@ const AdminDashboard = () => {
   });
 
   const [topicStats, setTopicStats] = useState([]);
+  const [topicAccessStats, setTopicAccessStats] = useState([]);
   const [recentUsers, setRecentUsers] = useState([]);
   const [userActivityData, setUserActivityData] = useState([]);
+
+  // Collapse states
+  const [collapsedSections, setCollapsedSections] = useState({
+    userActivity: false,
+    vocabByTopic: false,
+    topicAccess: false,
+    topicDistribution: false,
+    recentUsers: false
+  });
 
   useEffect(() => {
     fetchDashboardData();
@@ -44,10 +57,11 @@ const AdminDashboard = () => {
       const headers = { Authorization: `Bearer ${token}` };
 
       // Fetch all data in parallel
-      const [usersRes, topicsRes, vocabRes] = await Promise.all([
+      const [usersRes, topicsRes, vocabRes, topicAccessRes] = await Promise.all([
         axios.get(`${API_URL}/users`, { headers }),
         axios.get(`${API_URL}/topics`, { headers }),
-        axios.get(`${API_URL}/vocabularies?limit=1000`, { headers })
+        axios.get(`${API_URL}/vocabularies?limit=1000`, { headers }),
+        axios.get(`${API_URL}/topics/stats/access?limit=10`, { headers })
       ]);
 
       // Set stats
@@ -66,6 +80,16 @@ const AdminDashboard = () => {
           icon: topic.icon
         }));
         setTopicStats(topicData);
+      }
+
+      // Process topic access stats
+      if (topicAccessRes.data.success && topicAccessRes.data.data) {
+        const accessData = topicAccessRes.data.data.map(topic => ({
+          name: topic.name_vi || topic.name,
+          views: topic.access_count || 0,
+          icon: topic.icon
+        }));
+        setTopicAccessStats(accessData);
       }
 
       // Process recent users
@@ -135,6 +159,13 @@ const AdminDashboard = () => {
     );
   }
 
+  const toggleSection = (section) => {
+    setCollapsedSections(prev => ({
+      ...prev,
+      [section]: !prev[section]
+    }));
+  };
+
   const getTimeAgo = (dateString) => {
     const date = new Date(dateString);
     const now = new Date();
@@ -203,86 +234,156 @@ const AdminDashboard = () => {
             title="User Activity (Last 7 Days)"
             bordered={false}
             style={{ borderRadius: 12, boxShadow: '0 2px 8px rgba(0,0,0,0.05)' }}
+            extra={
+              <span
+                onClick={() => toggleSection('userActivity')}
+                style={{ cursor: 'pointer', fontSize: 16 }}
+              >
+                {collapsedSections.userActivity ? <DownOutlined /> : <UpOutlined />}
+              </span>
+            }
           >
-            <div style={{ height: 300 }}>
-              {userActivityData.length > 0 ? (
-                <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={userActivityData} margin={{ top: 5, right: 20, bottom: 5, left: 0 }}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                    <XAxis dataKey="date" tick={{ fontSize: 12 }} />
-                    <YAxis tick={{ fontSize: 12 }} />
-                    <Tooltip
-                      contentStyle={{ borderRadius: 8, border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
-                    />
-                    <Legend />
-                    <Line type="monotone" dataKey="active" name="Active Users" stroke="#1890ff" strokeWidth={2} />
-                    <Line type="monotone" dataKey="new" name="New Registrations" stroke="#52c41a" strokeWidth={2} />
-                  </LineChart>
-                </ResponsiveContainer>
-              ) : (
-                <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
-                  <p style={{ color: '#999' }}>No activity data available</p>
-                </div>
-              )}
-            </div>
+            {!collapsedSections.userActivity && (
+              <div style={{ height: 300 }}>
+                {userActivityData.length > 0 ? (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart data={userActivityData} margin={{ top: 5, right: 20, bottom: 5, left: 0 }}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                      <XAxis dataKey="date" tick={{ fontSize: 12 }} />
+                      <YAxis tick={{ fontSize: 12 }} />
+                      <Tooltip
+                        contentStyle={{ borderRadius: 8, border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
+                      />
+                      <Legend />
+                      <Line type="monotone" dataKey="active" name="Active Users" stroke="#1890ff" strokeWidth={2} />
+                      <Line type="monotone" dataKey="new" name="New Registrations" stroke="#52c41a" strokeWidth={2} />
+                    </LineChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
+                    <p style={{ color: '#999' }}>No activity data available</p>
+                  </div>
+                )}
+              </div>
+            )}
           </Card>
         </Col>
       </Row>
 
       <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
-        <Col xs={24} lg={16}>
+        <Col xs={24} lg={12}>
+          <Card
+            title="Most Accessed Topics"
+            bordered={false}
+            style={{ borderRadius: 12, height: '100%', boxShadow: '0 2px 8px rgba(0,0,0,0.05)' }}
+            extra={
+              <span
+                onClick={() => toggleSection('topicAccess')}
+                style={{ cursor: 'pointer', fontSize: 16 }}
+              >
+                {collapsedSections.topicAccess ? <DownOutlined /> : <UpOutlined />}
+              </span>
+            }
+          >
+            {!collapsedSections.topicAccess && (
+              <div style={{ height: 300 }}>
+                {topicAccessStats.length > 0 ? (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={topicAccessStats} margin={{ top: 5, right: 20, bottom: 5, left: 0 }}>
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
+                      <XAxis dataKey="name" tick={{ fontSize: 12 }} />
+                      <YAxis tick={{ fontSize: 12 }} />
+                      <Tooltip
+                        contentStyle={{ borderRadius: 8, border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
+                      />
+                      <Bar dataKey="views" name="Views" fill="#52c41a" radius={[8, 8, 0, 0]} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
+                    <p style={{ color: '#999' }}>No access data available</p>
+                  </div>
+                )}
+              </div>
+            )}
+          </Card>
+        </Col>
+        <Col xs={24} lg={12}>
           <Card
             title="Vocabulary by Topic"
             bordered={false}
             style={{ borderRadius: 12, height: '100%', boxShadow: '0 2px 8px rgba(0,0,0,0.05)' }}
+            extra={
+              <span
+                onClick={() => toggleSection('vocabByTopic')}
+                style={{ cursor: 'pointer', fontSize: 16 }}
+              >
+                {collapsedSections.vocabByTopic ? <DownOutlined /> : <UpOutlined />}
+              </span>
+            }
           >
-            <div style={{ height: 300 }}>
-              {topicStats.length > 0 ? (
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={topicStats} margin={{ top: 5, right: 20, bottom: 5, left: 0 }}>
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
-                    <XAxis dataKey="name" tick={{ fontSize: 12 }} />
-                    <YAxis tick={{ fontSize: 12 }} />
-                    <Tooltip
-                      contentStyle={{ borderRadius: 8, border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
-                    />
-                    <Bar dataKey="words" name="Words" fill="#1890ff" radius={[8, 8, 0, 0]} />
-                  </BarChart>
-                </ResponsiveContainer>
-              ) : (
-                <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
-                  <p style={{ color: '#999' }}>No topic data available</p>
-                </div>
-              )}
-            </div>
+            {!collapsedSections.vocabByTopic && (
+              <div style={{ height: 300 }}>
+                {topicStats.length > 0 ? (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={topicStats} margin={{ top: 5, right: 20, bottom: 5, left: 0 }}>
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
+                      <XAxis dataKey="name" tick={{ fontSize: 12 }} />
+                      <YAxis tick={{ fontSize: 12 }} />
+                      <Tooltip
+                        contentStyle={{ borderRadius: 8, border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
+                      />
+                      <Bar dataKey="words" name="Words" fill="#1890ff" radius={[8, 8, 0, 0]} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
+                    <p style={{ color: '#999' }}>No topic data available</p>
+                  </div>
+                )}
+              </div>
+            )}
           </Card>
         </Col>
-        <Col xs={24} lg={8}>
+      </Row>
+
+      <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
+        <Col xs={24}>
           <Card
             title="Topic Distribution"
             bordered={false}
-            style={{ borderRadius: 12, height: '100%', boxShadow: '0 2px 8px rgba(0,0,0,0.05)' }}
+            style={{ borderRadius: 12, boxShadow: '0 2px 8px rgba(0,0,0,0.05)' }}
+            extra={
+              <span
+                onClick={() => toggleSection('topicDistribution')}
+                style={{ cursor: 'pointer', fontSize: 16 }}
+              >
+                {collapsedSections.topicDistribution ? <DownOutlined /> : <UpOutlined />}
+              </span>
+            }
           >
-            <div style={{ height: 300, overflowY: 'auto' }}>
-              {topicStats.length > 0 ? (
-                <List
-                  dataSource={topicStats}
-                  renderItem={item => (
-                    <List.Item style={{ padding: '12px 0' }}>
-                      <List.Item.Meta
-                        avatar={<span style={{ fontSize: 24 }}>{item.icon || '📚'}</span>}
-                        title={item.name}
-                        description={`${item.words} words`}
-                      />
-                    </List.Item>
-                  )}
-                />
-              ) : (
-                <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
-                  <p style={{ color: '#999' }}>No topics available</p>
-                </div>
-              )}
-            </div>
+            {!collapsedSections.topicDistribution && (
+              <div style={{ maxHeight: 300, overflowY: 'auto' }}>
+                {topicStats.length > 0 ? (
+                  <List
+                    dataSource={topicStats}
+                    renderItem={item => (
+                      <List.Item style={{ padding: '12px 0' }}>
+                        <List.Item.Meta
+                          avatar={<span style={{ fontSize: 24 }}>{item.icon || '📚'}</span>}
+                          title={item.name}
+                          description={`${item.words} words`}
+                        />
+                      </List.Item>
+                    )}
+                  />
+                ) : (
+                  <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
+                    <p style={{ color: '#999' }}>No topics available</p>
+                  </div>
+                )}
+              </div>
+            )}
           </Card>
         </Col>
       </Row>
@@ -292,42 +393,54 @@ const AdminDashboard = () => {
         title="Recent Users"
         bordered={false}
         style={{ borderRadius: 12, boxShadow: '0 2px 8px rgba(0,0,0,0.05)' }}
+        extra={
+          <span
+            onClick={() => toggleSection('recentUsers')}
+            style={{ cursor: 'pointer', fontSize: 16 }}
+          >
+            {collapsedSections.recentUsers ? <DownOutlined /> : <UpOutlined />}
+          </span>
+        }
       >
-        {recentUsers.length > 0 ? (
-          <List
-            itemLayout="horizontal"
-            dataSource={recentUsers}
-            renderItem={user => (
-              <List.Item>
-                <List.Item.Meta
-                  avatar={
-                    <Avatar
-                      style={{ backgroundColor: user.role === 'admin' ? '#722ed1' : '#1890ff' }}
-                      icon={<UserOutlined />}
+        {!collapsedSections.recentUsers && (
+          <>
+            {recentUsers.length > 0 ? (
+              <List
+                itemLayout="horizontal"
+                dataSource={recentUsers}
+                renderItem={user => (
+                  <List.Item>
+                    <List.Item.Meta
+                      avatar={
+                        <Avatar
+                          style={{ backgroundColor: user.role === 'admin' ? '#722ed1' : '#1890ff' }}
+                          icon={<UserOutlined />}
+                        />
+                      }
+                      title={
+                        <span>
+                          <strong>{user.username}</strong>
+                          {user.role === 'admin' && (
+                            <Tag color="purple" style={{ marginLeft: 8 }}>Admin</Tag>
+                          )}
+                        </span>
+                      }
+                      description={
+                        <span>
+                          {user.email} • {user.xp} XP • Joined {getTimeAgo(user.created_at)}
+                        </span>
+                      }
                     />
-                  }
-                  title={
-                    <span>
-                      <strong>{user.username}</strong>
-                      {user.role === 'admin' && (
-                        <Tag color="purple" style={{ marginLeft: 8 }}>Admin</Tag>
-                      )}
-                    </span>
-                  }
-                  description={
-                    <span>
-                      {user.email} • {user.xp} XP • Joined {getTimeAgo(user.created_at)}
-                    </span>
-                  }
-                />
-              </List.Item>
+                  </List.Item>
+                )}
+              />
+            ) : (
+              <div style={{ textAlign: 'center', padding: '40px 0', color: '#999' }}>
+                <UserOutlined style={{ fontSize: 48, marginBottom: 16 }} />
+                <p>No users found</p>
+              </div>
             )}
-          />
-        ) : (
-          <div style={{ textAlign: 'center', padding: '40px 0', color: '#999' }}>
-            <UserOutlined style={{ fontSize: 48, marginBottom: 16 }} />
-            <p>No users found</p>
-          </div>
+          </>
         )}
       </Card>
     </div>

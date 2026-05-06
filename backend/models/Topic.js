@@ -64,6 +64,11 @@ const Topic = sequelize.define(
       allowNull: false,
       defaultValue: 0,
     },
+    access_count: {
+      type: DataTypes.INTEGER.UNSIGNED,
+      allowNull: false,
+      defaultValue: 0,
+    },
   },
   {
     tableName: 'topics',
