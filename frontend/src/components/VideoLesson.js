@@ -3,6 +3,8 @@ import YouTube from 'react-youtube';
 import axios from 'axios';
 import VideoExerciseModal from './VideoExerciseModal';
 
+const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api/v1';
+
 const VideoLesson = ({ videoId }) => {
   const [video, setVideo] = useState(null);
   const [subtitles, setSubtitles] = useState([]);
@@ -22,19 +24,37 @@ const VideoLesson = ({ videoId }) => {
   useEffect(() => {
     const fetchData = async () => {
       try {
+        const token = localStorage.getItem('token');
+        const headers = token ? { Authorization: `Bearer ${token}` } : {};
+
         const [videoRes, progressRes] = await Promise.all([
-          axios.get(`http://localhost:5000/api/v1/videos/${videoId}`),
-          axios.get(`http://localhost:5000/api/v1/videos/${videoId}/progress`, {
-            headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
-          })
+          axios.get(`${API_URL}/videos/${videoId}`, { headers }),
+          axios.get(`${API_URL}/videos/${videoId}/progress`, { headers })
         ]);
 
         setVideo(videoRes.data.data);
         setSubtitles(videoRes.data.data.subtitles || []);
-        setProgress(progressRes.data.data);
+
+        // Handle progress response - it might return default values if no progress exists
+        if (progressRes.data.success && progressRes.data.data) {
+          setProgress({
+            currentTime: progressRes.data.data.currentTime || 0,
+            completedSegments: progressRes.data.data.completedSegments || [],
+            isCompleted: progressRes.data.data.isCompleted || false
+          });
+        }
+
         setLoading(false);
       } catch (error) {
         console.error('Error fetching video data', error);
+        // If progress fetch fails, set default progress
+        if (error.response?.config?.url?.includes('/progress')) {
+          setProgress({
+            currentTime: 0,
+            completedSegments: [],
+            isCompleted: false
+          });
+        }
         setLoading(false);
       }
     };
@@ -87,10 +107,17 @@ const VideoLesson = ({ videoId }) => {
     if (success) {
       // Reload progress to get updated completed segments
       try {
-        const res = await axios.get(`http://localhost:5000/api/v1/videos/${videoId}/progress`, {
-          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+        const token = localStorage.getItem('token');
+        const res = await axios.get(`${API_URL}/videos/${videoId}/progress`, {
+          headers: { Authorization: `Bearer ${token}` }
         });
-        setProgress(res.data.data);
+        if (res.data.success && res.data.data) {
+          setProgress({
+            currentTime: res.data.data.currentTime || 0,
+            completedSegments: res.data.data.completedSegments || [],
+            isCompleted: res.data.data.isCompleted || false
+          });
+        }
       } catch (error) {
         console.error('Error refreshing progress', error);
       }
@@ -105,7 +132,7 @@ const VideoLesson = ({ videoId }) => {
     setIsSubmitting(true);
     try {
       const res = await axios.post(
-        `http://localhost:5000/api/v1/videos/${videoId}/dictation`,
+        `${API_URL}/videos/${videoId}/dictation`,
         { subtitleId, studentAnswer },
         { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } }
       );
@@ -122,7 +149,7 @@ const VideoLesson = ({ videoId }) => {
     setIsSubmitting(true);
     try {
       const res = await axios.post(
-        `http://localhost:5000/api/v1/videos/${videoId}/pronunciation`,
+        `${API_URL}/videos/${videoId}/pronunciation`,
         { subtitleId, spokenText },
         { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } }
       );
@@ -139,7 +166,7 @@ const VideoLesson = ({ videoId }) => {
     if (!player) return;
     try {
       await axios.post(
-        `http://localhost:5000/api/v1/videos/${videoId}/progress`,
+        `${API_URL}/videos/${videoId}/progress`,
         {
           currentTime: player.getCurrentTime(),
           completedSegments: progress.completedSegments
@@ -157,13 +184,36 @@ const VideoLesson = ({ videoId }) => {
     </div>
   );
 
+  // Check if video data is invalid
+  if (!video) {
+    return (
+      <div className="flex items-center justify-center h-screen bg-gray-50">
+        <div className="bg-white rounded-2xl shadow-xl p-8 max-w-md text-center">
+          <div className="text-6xl mb-4">⚠️</div>
+          <h2 className="text-2xl font-bold text-gray-800 mb-2">Video Not Found</h2>
+          <p className="text-gray-600 mb-6">The video you're looking for doesn't exist or has been removed.</p>
+          <button
+            onClick={() => window.history.back()}
+            className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-xl"
+          >
+            Go Back
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // Validate YouTube ID
+  const isValidYouTubeId = video.youtube_id && video.youtube_id.length > 0;
+
   const opts = {
     height: '450',
     width: '100%',
     playerVars: {
       autoplay: 0,
       modestbranding: 1,
-      rel: 0
+      rel: 0,
+      enablejsapi: 1
     },
   };
 
@@ -178,13 +228,31 @@ const VideoLesson = ({ videoId }) => {
         <div className="lg:col-span-2 space-y-6">
           <div className="bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-100">
             <div className="aspect-video">
-              <YouTube
-                videoId={video?.youtube_id}
-                opts={opts}
-                onReady={onPlayerReady}
-                onEnd={handleSaveProgress}
-                onPause={handleSaveProgress}
-              />
+              {isValidYouTubeId ? (
+                <YouTube
+                  videoId={video.youtube_id}
+                  opts={opts}
+                  onReady={onPlayerReady}
+                  onEnd={handleSaveProgress}
+                  onPause={handleSaveProgress}
+                  onError={(e) => {
+                    console.error('YouTube player error:', e);
+                  }}
+                />
+              ) : (
+                <div className="w-full h-full bg-gray-100 flex items-center justify-center">
+                  <div className="text-center p-8">
+                    <div className="text-5xl mb-4">🎥</div>
+                    <h3 className="text-xl font-bold text-gray-800 mb-2">Video Unavailable</h3>
+                    <p className="text-gray-600 text-sm mb-4">
+                      This video cannot be played. It may be private, restricted, or removed.
+                    </p>
+                    <p className="text-xs text-gray-500">
+                      Please contact the administrator to update the video.
+                    </p>
+                  </div>
+                </div>
+              )}
             </div>
             <div className="p-6">
               <h1 className="text-2xl font-bold text-gray-800 mb-2">{video?.title}</h1>
@@ -193,9 +261,13 @@ const VideoLesson = ({ videoId }) => {
                   {video?.level}
                 </span>
                 <span className="bg-gray-100 px-3 py-1 rounded-full">
-                  {video?.category}
+                  {video?.category || 'General'}
                 </span>
-                <span>{Math.floor(video?.duration_sec / 60)} minutes</span>
+                <span>
+                  {video?.duration_sec
+                    ? `${Math.floor(video.duration_sec / 60)} minutes`
+                    : 'Duration not available'}
+                </span>
               </div>
             </div>
           </div>
@@ -236,31 +308,39 @@ const VideoLesson = ({ videoId }) => {
             <h3 className="font-bold text-lg text-gray-800">Video Content</h3>
           </div>
           <div className="overflow-y-auto flex-grow p-2 space-y-2">
-            {subtitles.map((sub, index) => (
-              <button
-                key={sub.id}
-                onClick={() => player?.seekTo(sub.start_time)}
-                className={`w-full text-left p-4 rounded-xl transition-all ${
-                  progress.completedSegments.includes(sub.id)
-                    ? 'bg-green-50 border-green-100 border'
-                    : 'hover:bg-gray-50'
-                }`}
-              >
-                <div className="flex items-start">
-                  <span className={`w-8 h-8 rounded-full flex-shrink-0 flex items-center justify-center mr-3 text-xs font-bold ${
+            {!subtitles || subtitles.length === 0 ? (
+              <div className="flex flex-col items-center justify-center h-64 text-gray-400">
+                <div className="text-5xl mb-3">📝</div>
+                <p className="text-sm font-medium">No subtitles available</p>
+                <p className="text-xs mt-1">Subtitles will appear here when added</p>
+              </div>
+            ) : (
+              subtitles.map((sub, index) => (
+                <button
+                  key={sub.id}
+                  onClick={() => player?.seekTo(sub.start_time)}
+                  className={`w-full text-left p-4 rounded-xl transition-all ${
                     progress.completedSegments.includes(sub.id)
-                      ? 'bg-green-500 text-white'
-                      : 'bg-blue-100 text-blue-600'
-                  }`}>
-                    {index + 1}
-                  </span>
-                  <div>
-                    <p className="text-sm font-medium text-gray-800 line-clamp-2">{sub.text_en}</p>
-                    <p className="text-xs text-gray-500 mt-1">{sub.text_vi}</p>
+                      ? 'bg-green-50 border-green-100 border'
+                      : 'hover:bg-gray-50'
+                  }`}
+                >
+                  <div className="flex items-start">
+                    <span className={`w-8 h-8 rounded-full flex-shrink-0 flex items-center justify-center mr-3 text-xs font-bold ${
+                      progress.completedSegments.includes(sub.id)
+                        ? 'bg-green-500 text-white'
+                        : 'bg-blue-100 text-blue-600'
+                    }`}>
+                      {index + 1}
+                    </span>
+                    <div>
+                      <p className="text-sm font-medium text-gray-800 line-clamp-2">{sub.text_en}</p>
+                      <p className="text-xs text-gray-500 mt-1">{sub.text_vi}</p>
+                    </div>
                   </div>
-                </div>
-              </button>
-            ))}
+                </button>
+              ))
+            )}
           </div>
         </div>
       </div>

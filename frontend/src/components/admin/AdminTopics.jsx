@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Drawer, Form, message, Popconfirm, Switch } from 'antd';
+import { Drawer, Form, Input, message, Popconfirm, Switch } from 'antd';
 import {
   SearchOutlined,
   FolderOutlined,
@@ -10,7 +10,7 @@ import {
 import axios from 'axios';
 import withAdmin from './withAdmin';
 
-const { TextArea } = require('antd/lib/input');
+const { TextArea } = Input;
 
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api/v1';
 
@@ -164,8 +164,7 @@ const AdminTopics = () => {
         <div className="flex flex-col sm:flex-row gap-3 mb-5">
           <div className="flex-1 min-w-0 relative">
             <SearchOutlined className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-            <input
-              type="text"
+            <Input
               placeholder="Search topics..."
               value={searchText}
               onChange={(e) => setSearchText(e.target.value)}
@@ -292,11 +291,7 @@ const AdminTopics = () => {
             label="Name (English)"
             rules={[{ required: true, message: 'Please enter English name' }]}
           >
-            <input
-              type="text"
-              placeholder="e.g., Daily Life"
-              className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
+            <Input placeholder="e.g., Daily Life" />
           </Form.Item>
 
           <Form.Item
@@ -304,11 +299,7 @@ const AdminTopics = () => {
             label="Name (Vietnamese)"
             rules={[{ required: true, message: 'Please enter Vietnamese name' }]}
           >
-            <input
-              type="text"
-              placeholder="e.g., Cuộc sống hàng ngày"
-              className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
+            <Input placeholder="e.g., Cuộc sống hàng ngày" />
           </Form.Item>
 
           <Form.Item
@@ -320,11 +311,7 @@ const AdminTopics = () => {
             ]}
             help="URL-friendly identifier (e.g., daily-life)"
           >
-            <input
-              type="text"
-              placeholder="e.g., daily-life"
-              className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
+            <Input placeholder="e.g., daily-life" />
           </Form.Item>
 
           <Form.Item
@@ -333,12 +320,7 @@ const AdminTopics = () => {
             rules={[{ required: true, message: 'Please enter an emoji icon' }]}
             help="Use a single emoji character"
           >
-            <input
-              type="text"
-              placeholder="e.g., 🏠"
-              maxLength={2}
-              className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
+            <Input placeholder="e.g., 🏠" maxLength={2} />
           </Form.Item>
 
           <Form.Item
@@ -353,11 +335,7 @@ const AdminTopics = () => {
             label="Recommended Level"
             rules={[{ required: true, message: 'Please select level' }]}
           >
-            <input
-              type="text"
-              placeholder="e.g., A1, A2, B1"
-              className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
+            <Input placeholder="e.g., A1, A2, B1" />
           </Form.Item>
 
           <Form.Item

@@ -654,6 +654,132 @@ exports.getTodayVocab = async (req, res) => {
 };
 
 /**
+ * Get random vocabulary words for practice (not necessarily due for review)
+ * GET /api/v1/vocab/random
+ */
+exports.getRandomVocab = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const user = await User.findByPk(userId);
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found',
+      });
+    }
+
+    const limit = parseInt(req.query.limit) || 10;
+
+    // Get vocabularies that user has already learned (has progress)
+    const learnedVocabIds = await UserProgress.findAll({
+      where: {
+        user_id: userId,
+        type: 'vocabulary',
+        status: {
+          [Op.in]: ['in-progress', 'completed'],
+        },
+      },
+      attributes: ['ref_id'],
+      raw: true,
+    }).then((results) => results.map((r) => r.ref_id));
+
+    // Get random words from learned vocabulary (not mastered)
+    let randomWords = [];
+    if (learnedVocabIds.length > 0) {
+      randomWords = await Vocabulary.findAll({
+        where: {
+          id: {
+            [Op.in]: learnedVocabIds,
+          },
+          is_active: true,
+        },
+        include: [
+          {
+            model: Topic,
+            as: 'topic',
+            attributes: ['id', 'name', 'name_vi', 'icon'],
+          },
+        ],
+        limit: limit,
+        order: [[sequelize.fn('RAND')]],
+      });
+    }
+
+    // If not enough learned words, add some new words
+    if (randomWords.length < limit) {
+      const remaining = limit - randomWords.length;
+      const newWords = await Vocabulary.findAll({
+        where: {
+          id: {
+            [Op.notIn]: learnedVocabIds.length > 0 ? learnedVocabIds : [0],
+          },
+          level: {
+            [Op.in]: getLevelRange(user.level),
+          },
+          is_active: true,
+        },
+        include: [
+          {
+            model: Topic,
+            as: 'topic',
+            attributes: ['id', 'name', 'name_vi', 'icon'],
+          },
+        ],
+        limit: remaining,
+        order: [[sequelize.fn('RAND')]],
+      });
+
+      randomWords = [...randomWords, ...newWords];
+    }
+
+    // Get progress for these words
+    const wordsWithProgress = await Promise.all(
+      randomWords.map(async (vocab) => {
+        const progress = await UserProgress.findOne({
+          where: {
+            user_id: userId,
+            type: 'vocabulary',
+            ref_id: vocab.id,
+          },
+        });
+
+        return {
+          progressId: progress?.id,
+          vocab: vocab,
+          lastStudied: progress?.last_studied,
+          attempts: progress?.attempts || 0,
+          status: progress?.status || 'not-started',
+        };
+      })
+    );
+
+    res.json({
+      success: true,
+      data: {
+        toReview: wordsWithProgress,
+        newWords: [],
+        todayStats: {
+          reviewed: 0,
+          newLearned: 0,
+          dueCount: 0,
+          newAvailable: 0,
+          streak: user.streak,
+          xp: user.xp,
+        },
+      },
+    });
+  } catch (error) {
+    console.error('Get random vocab error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error',
+      error: error.message,
+    });
+  }
+};
+
+/**
  * Review a flashcard
  * POST /api/v1/vocab/flashcard/review
  */

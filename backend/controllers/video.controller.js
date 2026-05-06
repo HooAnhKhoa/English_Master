@@ -17,7 +17,6 @@ const getAllVideos = asyncHandler(async (req, res) => {
     search,
     level,
     category,
-    is_published,
   } = req.query;
 
   // Build where clause
@@ -35,16 +34,7 @@ const getAllVideos = asyncHandler(async (req, res) => {
     where.category = category;
   }
 
-  if (is_published !== undefined) {
-    where.is_published = is_published === 'true';
-  } else {
-    // Default: only show published videos for non-admin
-    if (!req.user || req.user.role !== 'admin') {
-      where.is_published = true;
-    }
-  }
-
-  // Filter by is_active for non-admin users
+  // Only filter by is_active
   if (!req.user || req.user.role !== 'admin') {
     where.is_active = true;
   }
@@ -169,6 +159,7 @@ const updateVideo = asyncHandler(async (req, res) => {
     category,
     duration_sec,
     is_published,
+    is_active,
   } = req.body;
 
   const video = await VideoLesson.findByPk(id);
@@ -186,6 +177,7 @@ const updateVideo = asyncHandler(async (req, res) => {
   if (category !== undefined) video.category = category;
   if (duration_sec !== undefined) video.duration_sec = duration_sec;
   if (is_published !== undefined) video.is_published = is_published;
+  if (is_active !== undefined) video.is_active = is_active;
 
   await video.save();
 

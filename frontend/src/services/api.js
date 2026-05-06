@@ -37,10 +37,18 @@ api.interceptors.response.use(
 );
 
 /**
- * Get today's vocabulary review list
+ * Get today's vocabulary review list (words due for review)
  */
 export const getTodayVocab = async () => {
   const response = await api.get('/vocab/today');
+  return response.data;
+};
+
+/**
+ * Get random vocabulary for practice (not necessarily due)
+ */
+export const getRandomVocab = async (limit = 10) => {
+  const response = await api.get(`/vocab/random?limit=${limit}`);
   return response.data;
 };
 

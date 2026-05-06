@@ -36,9 +36,9 @@ const FlashCard = ({ vocab, onReview, isFlipped, onFlip }) => {
           }`}
         >
           <div className="text-center">
-            <h2 className="text-5xl font-bold text-white mb-4">{vocab.word}</h2>
+            <h2 className="text-7xl font-bold text-white mb-6">{vocab.word}</h2>
             {vocab.pronunciation && (
-              <p className="text-xl text-blue-100 mb-6">{vocab.pronunciation}</p>
+              <p className="text-3xl text-blue-100 mb-8">{vocab.pronunciation}</p>
             )}
             <button
               onClick={(e) => {
@@ -47,10 +47,10 @@ const FlashCard = ({ vocab, onReview, isFlipped, onFlip }) => {
               }}
               className="bg-white/20 hover:bg-white/30 text-white rounded-full p-4 transition-all duration-200 hover:scale-110"
             >
-              <Volume2 size={32} />
+              <Volume2 size={40} />
             </button>
           </div>
-          <div className="absolute bottom-6 text-white/70 text-sm">
+          <div className="absolute bottom-6 text-white/70 text-base">
             Click to flip
           </div>
         </div>
@@ -75,11 +75,11 @@ const FlashCard = ({ vocab, onReview, isFlipped, onFlip }) => {
 
             {/* Part of Speech & Topic */}
             <div className="flex gap-2 mb-4">
-              <span className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm font-medium">
+              <span className="px-4 py-2 bg-blue-100 text-blue-700 rounded-full text-base font-medium">
                 {vocab.part_of_speech}
               </span>
               {vocab.topic && (
-                <span className="px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-sm font-medium">
+                <span className="px-4 py-2 bg-purple-100 text-purple-700 rounded-full text-base font-medium">
                   {vocab.topic.icon} {vocab.topic.name}
                 </span>
               )}
@@ -87,24 +87,24 @@ const FlashCard = ({ vocab, onReview, isFlipped, onFlip }) => {
 
             {/* Meaning */}
             <div className="mb-4">
-              <h3 className="text-2xl font-bold text-gray-800 mb-2">{vocab.meaning}</h3>
+              <h3 className="text-4xl font-bold text-gray-800 mb-3">{vocab.meaning}</h3>
               {vocab.definition && (
-                <p className="text-gray-600 text-sm">{vocab.definition}</p>
+                <p className="text-gray-600 text-lg">{vocab.definition}</p>
               )}
             </div>
 
             {/* Example */}
             {vocab.example && (
-              <div className="mb-4 bg-gray-50 p-4 rounded-lg">
-                <p className="text-gray-700 italic mb-1">"{vocab.example}"</p>
+              <div className="mb-4 bg-gray-50 p-5 rounded-lg">
+                <p className="text-gray-700 italic mb-2 text-lg">"{vocab.example}"</p>
                 {vocab.example_vi && (
-                  <p className="text-gray-500 text-sm">"{vocab.example_vi}"</p>
+                  <p className="text-gray-500 text-base">"{vocab.example_vi}"</p>
                 )}
               </div>
             )}
 
             {/* Synonyms & Antonyms */}
-            <div className="flex gap-4 text-sm">
+            <div className="flex gap-4 text-base">
               {vocab.synonyms && vocab.synonyms.length > 0 && (
                 <div>
                   <span className="font-semibold text-green-600">Synonyms: </span>
@@ -125,43 +125,50 @@ const FlashCard = ({ vocab, onReview, isFlipped, onFlip }) => {
       {/* Review Buttons - Only show when flipped */}
       {isFlipped && (
         <div className="space-y-3 mt-6">
-          <div className="grid grid-cols-4 gap-3">
+          <div className="grid grid-cols-2 gap-3">
             <button
               onClick={() => handleReview('forgot')}
-              className="bg-red-500 hover:bg-red-600 text-white font-semibold py-4 px-6 rounded-xl transition-all duration-200 hover:scale-105 shadow-lg"
+              className="bg-red-500 hover:bg-red-600 text-white font-semibold py-5 px-4 rounded-xl transition-all duration-200 hover:scale-105 shadow-lg"
             >
-              <div className="text-2xl mb-1">😰</div>
-              <div className="text-sm">Quên rồi</div>
+              <div className="text-3xl mb-2">❌</div>
+              <div className="text-base font-bold mb-1">Không nhớ</div>
+              <div className="text-xs opacity-90">Ôn lại ngay</div>
             </button>
             <button
               onClick={() => handleReview('hard')}
-              className="bg-orange-500 hover:bg-orange-600 text-white font-semibold py-4 px-6 rounded-xl transition-all duration-200 hover:scale-105 shadow-lg"
+              className="bg-orange-500 hover:bg-orange-600 text-white font-semibold py-5 px-4 rounded-xl transition-all duration-200 hover:scale-105 shadow-lg"
             >
-              <div className="text-2xl mb-1">😓</div>
-              <div className="text-sm">Khó</div>
+              <div className="text-3xl mb-2">😓</div>
+              <div className="text-base font-bold mb-1">Khó nhớ</div>
+              <div className="text-xs opacity-90">Ôn lại sau 1 ngày</div>
             </button>
             <button
               onClick={() => handleReview('good')}
-              className="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-4 px-6 rounded-xl transition-all duration-200 hover:scale-105 shadow-lg"
+              className="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-5 px-4 rounded-xl transition-all duration-200 hover:scale-105 shadow-lg"
             >
-              <div className="text-2xl mb-1">😊</div>
-              <div className="text-sm">OK</div>
+              <div className="text-3xl mb-2">👍</div>
+              <div className="text-base font-bold mb-1">Nhớ được</div>
+              <div className="text-xs opacity-90">Ôn lại sau 3 ngày</div>
             </button>
             <button
               onClick={() => handleReview('easy')}
-              className="bg-green-500 hover:bg-green-600 text-white font-semibold py-4 px-6 rounded-xl transition-all duration-200 hover:scale-105 shadow-lg"
+              className="bg-green-500 hover:bg-green-600 text-white font-semibold py-5 px-4 rounded-xl transition-all duration-200 hover:scale-105 shadow-lg"
             >
-              <div className="text-2xl mb-1">😎</div>
-              <div className="text-sm">Dễ</div>
+              <div className="text-3xl mb-2">✨</div>
+              <div className="text-base font-bold mb-1">Rất dễ</div>
+              <div className="text-xs opacity-90">Ôn lại sau 7 ngày</div>
             </button>
           </div>
           <button
             onClick={() => handleReview('mastered')}
-            className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-200 hover:scale-105 shadow-lg"
+            className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-semibold py-4 px-6 rounded-xl transition-all duration-200 hover:scale-105 shadow-lg"
           >
             <div className="flex items-center justify-center gap-2">
-              <span className="text-xl">✅</span>
-              <span>Đã thuộc - Không ôn lại</span>
+              <span className="text-2xl">🎯</span>
+              <div className="text-left">
+                <div className="font-bold">Đã thuộc lòng</div>
+                <div className="text-xs opacity-90">Không cần ôn lại nữa</div>
+              </div>
             </div>
           </button>
         </div>
@@ -170,7 +177,7 @@ const FlashCard = ({ vocab, onReview, isFlipped, onFlip }) => {
   );
 };
 
-const FlashCardSession = ({ user, onLogout }) => {
+const FlashCardSession = ({ user, onLogout, dueOnly = false }) => {
   const [vocabList, setVocabList] = useState([]);
   const [newWords, setNewWords] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -188,17 +195,19 @@ const FlashCardSession = ({ user, onLogout }) => {
   const loadTodayVocab = async () => {
     try {
       setLoading(true);
-      const { getTodayVocab } = await import('../services/api');
-      const response = await getTodayVocab();
+      const { getTodayVocab, getRandomVocab } = await import('../services/api');
+
+      // Use different API based on dueOnly prop
+      const response = dueOnly ? await getTodayVocab() : await getRandomVocab(10);
 
       if (response.success) {
         const { toReview, newWords: newWordsData, todayStats } = response.data;
 
-        // Only use review words (10 random learned words), no new words
+        // Get vocab list from toReview
         const reviewVocabs = toReview.map(item => item.vocab).filter(v => v.is_active !== false);
 
         setVocabList(reviewVocabs);
-        setNewWords([]);
+        setNewWords(newWordsData?.map(w => w.id) || []);
         setStats(todayStats);
 
         if (reviewVocabs.length === 0) {
@@ -274,7 +283,10 @@ const FlashCardSession = ({ user, onLogout }) => {
           <div className="text-6xl mb-4">🎉</div>
           <h2 className="text-3xl font-bold text-gray-800 mb-4">Hoàn thành!</h2>
           <p className="text-gray-600 mb-6">
-            Bạn đã hoàn thành {vocabList.length} từ vựng hôm nay!
+            {dueOnly
+              ? `Bạn đã ôn tập xong ${vocabList.length} từ cần ôn hôm nay!`
+              : `Bạn đã luyện tập ${vocabList.length} từ vựng!`
+            }
           </p>
 
           {stats && (
@@ -337,7 +349,9 @@ const FlashCardSession = ({ user, onLogout }) => {
               >
                 ← Back
               </button>
-              <h1 className="text-3xl font-bold text-gray-800">Học từ vựng</h1>
+              <h1 className="text-3xl font-bold text-gray-800">
+                {dueOnly ? 'Ôn tập từ vựng' : 'Luyện tập từ vựng'}
+              </h1>
             </div>
             <div className="flex gap-4 text-sm">
               {stats && (

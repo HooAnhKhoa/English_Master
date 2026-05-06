@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Drawer, Form, message, Popconfirm, Switch } from 'antd';
+import { Drawer, Form, Input, message, Popconfirm, Switch } from 'antd';
 import {
   SearchOutlined,
   TrophyOutlined,
@@ -13,7 +13,7 @@ import {
 import axios from 'axios';
 import withAdmin from './withAdmin';
 
-const { TextArea } = require('antd/lib/input');
+const { TextArea } = Input;
 
 const AdminQuizzes = () => {
   const [templates, setTemplates] = useState([]);
@@ -282,8 +282,7 @@ const AdminQuizzes = () => {
         <div className="flex flex-col sm:flex-row gap-3 mb-5">
           <div className="flex-1 min-w-0 relative">
             <SearchOutlined className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-            <input
-              type="text"
+            <Input
               placeholder="Search templates..."
               value={searchText}
               onChange={(e) => setSearchText(e.target.value)}
@@ -426,11 +425,7 @@ const AdminQuizzes = () => {
             label="Title"
             rules={[{ required: true, message: 'Please enter title' }]}
           >
-            <input
-              type="text"
-              placeholder="e.g., Daily Life Vocabulary Quiz"
-              className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
+            <Input placeholder="e.g., Daily Life Vocabulary Quiz" />
           </Form.Item>
 
           <Form.Item
@@ -446,7 +441,7 @@ const AdminQuizzes = () => {
               label="Type"
               rules={[{ required: true, message: 'Please select type' }]}
             >
-              <select className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+              <select >
                 <option value="">Select type</option>
                 <option value="vocab">Vocabulary</option>
                 <option value="lesson">Lesson</option>
@@ -457,7 +452,7 @@ const AdminQuizzes = () => {
               name="level"
               label="Level"
             >
-              <select className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+              <select >
                 <option value="">Select level</option>
                 <option value="A1">A1</option>
                 <option value="A2">A2</option>
@@ -473,7 +468,7 @@ const AdminQuizzes = () => {
             name="topic_id"
             label="Topic"
           >
-            <select className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <select >
               <option value="">Select topic</option>
               {topics.map(topic => (
                 <option key={topic.id} value={topic.id}>
@@ -489,34 +484,20 @@ const AdminQuizzes = () => {
               label="Total Questions"
               rules={[{ required: true, message: 'Required' }]}
             >
-              <input
-                type="number"
-                min="1"
-                max="50"
-                className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
+              <Input type="number" min="1" max="50" />
             </Form.Item>
             <Form.Item
               name="time_limit_sec"
               label="Time Limit (sec)"
             >
-              <input
-                type="number"
-                min="0"
-                className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
+              <Input type="number" min="0" />
             </Form.Item>
             <Form.Item
               name="passing_score"
               label="Pass Score (%)"
               rules={[{ required: true, message: 'Required' }]}
             >
-              <input
-                type="number"
-                min="0"
-                max="100"
-                className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
+              <Input type="number" min="0" max="100" />
             </Form.Item>
           </div>
 
@@ -563,16 +544,15 @@ const AdminQuizzes = () => {
                   <option value="true_false">True/False</option>
                 </select>
 
-                <input
-                  type="text"
+                <Input
+                  />
                   placeholder="Question text"
                   value={q.question_text}
                   onChange={(e) => updateQuestion(index, 'question_text', e.target.value)}
                   className="w-full px-2 py-1.5 text-sm border border-gray-200 rounded mb-2"
                 />
 
-                <input
-                  type="text"
+                <Input
                   placeholder="Correct answer"
                   value={q.correct_answer}
                   onChange={(e) => updateQuestion(index, 'correct_answer', e.target.value)}
@@ -583,9 +563,8 @@ const AdminQuizzes = () => {
                   <div className="mb-2">
                     <div className="text-xs text-gray-500 mb-1">Options:</div>
                     {(q.options || []).map((opt, optIndex) => (
-                      <input
+                      <Input
                         key={optIndex}
-                        type="text"
                         placeholder={`Option ${optIndex + 1}`}
                         value={opt}
                         onChange={(e) => {

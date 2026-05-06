@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Drawer, Form, message, Popconfirm, Modal, Switch } from 'antd';
+import { Drawer, Form, Input, message, Popconfirm, Modal, Switch } from 'antd';
 import {
   SearchOutlined,
   VideoCameraOutlined,
@@ -12,7 +12,7 @@ import {
 import axios from 'axios';
 import withAdmin from './withAdmin';
 
-const { TextArea } = require('antd/lib/input');
+const { TextArea } = Input;
 
 const AdminVideos = () => {
   const [videos, setVideos] = useState([]);
@@ -55,10 +55,10 @@ const AdminVideos = () => {
     form.setFieldsValue({
       title: video.title,
       youtube_id: video.youtube_id,
-      description: video.description,
       level: video.level,
-      duration: video.duration,
-      is_active: video.is_active !== false
+      duration: video.duration_sec,
+      is_active: video.is_active !== false,
+      is_published: video.is_published !== false
     });
     setDrawerVisible(true);
   };
@@ -93,14 +93,21 @@ const AdminVideos = () => {
       const token = localStorage.getItem('token');
       const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api/v1';
 
+      // Map duration to duration_sec for backend
+      const payload = {
+        ...values,
+        duration_sec: values.duration
+      };
+      delete payload.duration;
+
       if (editingVideo) {
-        await axios.put(`${API_URL}/videos/${editingVideo.id}`, values, {
+        await axios.put(`${API_URL}/videos/${editingVideo.id}`, payload, {
           headers: { Authorization: `Bearer ${token}` }
         });
         setVideos(videos.map(v => v.id === editingVideo.id ? { ...v, ...values } : v));
         message.success('Video updated successfully');
       } else {
-        const response = await axios.post(`${API_URL}/videos`, values, {
+        const response = await axios.post(`${API_URL}/videos`, payload, {
           headers: { Authorization: `Bearer ${token}` }
         });
         setVideos([...videos, response.data.data]);
@@ -133,9 +140,12 @@ const AdminVideos = () => {
 
   const getLevelColor = (level) => {
     const colors = {
-      beginner: 'bg-green-50 text-green-700',
-      intermediate: 'bg-orange-50 text-orange-700',
-      advanced: 'bg-purple-50 text-purple-700'
+      'A1': 'bg-green-50 text-green-700',
+      'A2': 'bg-cyan-50 text-cyan-700',
+      'B1': 'bg-blue-50 text-blue-700',
+      'B2': 'bg-orange-50 text-orange-700',
+      'C1': 'bg-purple-50 text-purple-700',
+      'C2': 'bg-red-50 text-red-700'
     };
     return colors[level] || 'bg-gray-50 text-gray-700';
   };
@@ -202,8 +212,7 @@ const AdminVideos = () => {
         <div className="flex flex-col sm:flex-row gap-3 mb-4">
           <div className="flex-1 relative">
             <SearchOutlined className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-            <input
-              type="text"
+            <Input
               placeholder="Search videos..."
               value={searchText}
               onChange={(e) => setSearchText(e.target.value)}
@@ -216,9 +225,12 @@ const AdminVideos = () => {
             className="w-full sm:w-40 px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
             <option value="all">All Levels</option>
-            <option value="beginner">Beginner</option>
-            <option value="intermediate">Intermediate</option>
-            <option value="advanced">Advanced</option>
+            <option value="A1">A1</option>
+            <option value="A2">A2</option>
+            <option value="B1">B1</option>
+            <option value="B2">B2</option>
+            <option value="C1">C1</option>
+            <option value="C2">C2</option>
           </select>
           <div className="text-sm text-gray-500 self-center whitespace-nowrap">
             {filteredVideos.length} of {videos.length} videos
@@ -343,11 +355,7 @@ const AdminVideos = () => {
             label="Title"
             rules={[{ required: true, message: 'Please enter title' }]}
           >
-            <input
-              type="text"
-              placeholder="Enter video title"
-              className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
+            <Input placeholder="Enter video title" />
           </Form.Item>
 
           <Form.Item
@@ -356,19 +364,7 @@ const AdminVideos = () => {
             rules={[{ required: true, message: 'Please enter YouTube ID' }]}
             extra="The ID from YouTube URL (e.g., dQw4w9WgXcQ)"
           >
-            <input
-              type="text"
-              placeholder="e.g., dQw4w9WgXcQ"
-              className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </Form.Item>
-
-          <Form.Item
-            name="description"
-            label="Description"
-            rules={[{ required: true, message: 'Please enter description' }]}
-          >
-            <TextArea rows={3} placeholder="Enter video description" />
+            <Input placeholder="e.g., dQw4w9WgXcQ" />
           </Form.Item>
 
           <Form.Item
@@ -376,11 +372,14 @@ const AdminVideos = () => {
             label="Level"
             rules={[{ required: true, message: 'Please select level' }]}
           >
-            <select className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <select className="w-full px-3 py-2 border border-gray-200 rounded-lg">
               <option value="">Select level</option>
-              <option value="beginner">Beginner</option>
-              <option value="intermediate">Intermediate</option>
-              <option value="advanced">Advanced</option>
+              <option value="A1">A1 - Beginner</option>
+              <option value="A2">A2 - Elementary</option>
+              <option value="B1">B1 - Intermediate</option>
+              <option value="B2">B2 - Upper-Intermediate</option>
+              <option value="C1">C1 - Advanced</option>
+              <option value="C2">C2 - Proficiency</option>
             </select>
           </Form.Item>
 
@@ -389,16 +388,21 @@ const AdminVideos = () => {
             label="Duration (seconds)"
             rules={[{ required: true, message: 'Please enter duration' }]}
           >
-            <input
-              type="number"
-              placeholder="e.g., 300"
-              className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
+            <Input type="number" placeholder="e.g., 300" />
           </Form.Item>
 
           <Form.Item
             name="is_active"
             label="Active"
+            valuePropName="checked"
+            initialValue={true}
+          >
+            <Switch />
+          </Form.Item>
+
+          <Form.Item
+            name="is_published"
+            label="Published"
             valuePropName="checked"
             initialValue={true}
           >

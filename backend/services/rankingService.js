@@ -49,7 +49,7 @@ async function getLeaderboard(period = 'daily', page = 1, limit = 20) {
     const periodKey = getPeriodKey(period);
     const offset = (page - 1) * limit;
 
-    // Get rankings with user data
+    // Get rankings with user data, exclude admin users
     const { rows, count } = await Ranking.findAndCountAll({
       where: {
         period,
@@ -59,7 +59,12 @@ async function getLeaderboard(period = 'daily', page = 1, limit = 20) {
         {
           model: User,
           as: 'user',
-          attributes: ['id', 'username', 'full_name', 'avatar', 'level', 'xp'],
+          attributes: ['id', 'username', 'full_name', 'avatar', 'level', 'xp', 'role'],
+          where: {
+            role: {
+              [Op.ne]: 'admin'
+            }
+          }
         },
       ],
       order: [['xp', 'DESC']],

@@ -28,10 +28,17 @@ router.get('/search', optionalAuth, vocabController.searchVocabulary);
 
 /**
  * @route   GET /api/v1/vocab/today
- * @desc    Get today's vocabulary review list
+ * @desc    Get today's vocabulary review list (words due for review)
  * @access  Private
  */
 router.get('/today', verifyToken, vocabController.getTodayVocab);
+
+/**
+ * @route   GET /api/v1/vocab/random
+ * @desc    Get random vocabulary words for practice (not necessarily due)
+ * @access  Private
+ */
+router.get('/random', verifyToken, vocabController.getRandomVocab);
 
 /**
  * @route   GET /api/v1/vocab/stats

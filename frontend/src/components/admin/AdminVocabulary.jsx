@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Drawer, Form, message, Upload, Popconfirm, Switch, Select } from 'antd';
+import { Drawer, Form, Input, message, Upload, Popconfirm, Switch, Select } from 'antd';
 import {
   SearchOutlined,
   ReadOutlined,
@@ -14,7 +14,7 @@ import Papa from 'papaparse';
 import withAdmin from './withAdmin';
 
 const { Option } = Select;
-const { TextArea } = require('antd/lib/input');
+const { TextArea } = Input;
 
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api/v1';
 
@@ -430,11 +430,7 @@ const AdminVocabulary = () => {
             label="Word"
             rules={[{ required: true, message: 'Please enter word' }]}
           >
-            <input
-              type="text"
-              placeholder="Enter word"
-              className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
+            <Input placeholder="Enter word" />
           </Form.Item>
 
           <Form.Item
@@ -442,22 +438,14 @@ const AdminVocabulary = () => {
             label="Meaning (Vietnamese)"
             rules={[{ required: true, message: 'Please enter meaning' }]}
           >
-            <input
-              type="text"
-              placeholder="Enter meaning"
-              className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
+            <Input placeholder="Enter meaning" />
           </Form.Item>
 
           <Form.Item
             name="pronunciation"
             label="Pronunciation (IPA)"
           >
-            <input
-              type="text"
-              placeholder="e.g., /həˈloʊ/"
-              className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
+            <Input placeholder="e.g., /həˈloʊ/" />
           </Form.Item>
 
           <Form.Item

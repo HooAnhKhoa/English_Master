@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Card, Row, Col, Statistic, Button, Alert, Progress, Tag, Spin, Empty } from 'antd';
+import { Card, Row, Col, Statistic, Button, Alert, Progress, Tag, Spin, Empty, Modal, List } from 'antd';
 import {
   BookOutlined,
   TrophyOutlined,
@@ -9,7 +9,7 @@ import {
   WarningOutlined,
   RightOutlined
 } from '@ant-design/icons';
-import { getReviewDashboard } from '../services/reviewService';
+import { getReviewDashboard, getVocabDue } from '../services/reviewService';
 
 const ReviewDashboard = () => {
   const navigate = (path) => {
@@ -17,6 +17,10 @@ const ReviewDashboard = () => {
   };
   const [loading, setLoading] = useState(true);
   const [dashboard, setDashboard] = useState(null);
+  const [showVocabModal, setShowVocabModal] = useState(false);
+  const [vocabDueList, setVocabDueList] = useState(null);
+  const [loadingVocab, setLoadingVocab] = useState(false);
+  const [selectedDate, setSelectedDate] = useState(null);
 
   useEffect(() => {
     fetchDashboard();
@@ -33,6 +37,37 @@ const ReviewDashboard = () => {
       console.error('Failed to fetch dashboard:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchVocabDue = async (date) => {
+    try {
+      setLoadingVocab(true);
+      setSelectedDate(date);
+      const response = await getVocabDue();
+      if (response.success) {
+        // Filter words by selected date
+        const filteredData = {
+          ...response.data,
+          byTopic: response.data.byTopic.map(topic => ({
+            ...topic,
+            words: topic.words.filter(word => {
+              const reviewDate = new Date(word.next_review);
+              const selectedDay = new Date(date);
+              return reviewDate.toDateString() === selectedDay.toDateString();
+            })
+          })).filter(topic => topic.words.length > 0),
+          total: 0
+        };
+        // Recalculate total
+        filteredData.total = filteredData.byTopic.reduce((sum, topic) => sum + topic.words.length, 0);
+        setVocabDueList(filteredData);
+        setShowVocabModal(true);
+      }
+    } catch (error) {
+      console.error('Failed to fetch vocab due:', error);
+    } finally {
+      setLoadingVocab(false);
     }
   };
 
@@ -232,15 +267,28 @@ const ReviewDashboard = () => {
 
         <Col xs={24} lg={12}>
           <Card title="📅 Lịch Ôn Tập 7 Ngày Tới" bordered={false}>
-            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+            <div style={{ marginBottom: '16px', padding: '12px', backgroundColor: '#f0f5ff', borderRadius: '8px', border: '1px solid #d6e4ff' }}>
+              <p style={{ margin: 0, fontSize: '13px', color: '#1890ff' }}>
+                💡 <strong>Ghi chú:</strong> Số lượng từ cần ôn mỗi ngày dựa trên thuật toán Spaced Repetition.
+                Màu đậm hơn = nhiều từ hơn cần ôn. Ôn đúng lịch giúp ghi nhớ lâu dài!
+              </p>
+            </div>
+            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '12px' }}>
               {upcomingReviews.map((review, index) => {
                 const date = new Date(review.date);
                 const dayName = date.toLocaleDateString('vi-VN', { weekday: 'short' });
                 const dayNum = date.getDate();
+                const isToday = new Date().toDateString() === date.toDateString();
 
                 return (
                   <div
                     key={index}
+                    onClick={() => {
+                      if (review.count > 0) {
+                        // Show vocab due list modal for selected date
+                        fetchVocabDue(review.date);
+                      }
+                    }}
                     style={{
                       flex: '1 1 calc(14.28% - 8px)',
                       minWidth: '60px',
@@ -248,21 +296,61 @@ const ReviewDashboard = () => {
                       padding: '12px 8px',
                       borderRadius: '8px',
                       backgroundColor: getIntensityColor(review.count),
-                      border: '1px solid #d9d9d9'
+                      border: isToday ? '2px solid #1890ff' : '1px solid #d9d9d9',
+                      position: 'relative',
+                      cursor: review.count > 0 ? 'pointer' : 'default',
+                      transition: 'transform 0.2s, box-shadow 0.2s'
+                    }}
+                    onMouseEnter={(e) => {
+                      if (review.count > 0) {
+                        e.currentTarget.style.transform = 'scale(1.05)';
+                        e.currentTarget.style.boxShadow = '0 4px 8px rgba(0,0,0,0.15)';
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.transform = 'scale(1)';
+                      e.currentTarget.style.boxShadow = 'none';
                     }}
                   >
+                    {isToday && (
+                      <div style={{
+                        position: 'absolute',
+                        top: '-8px',
+                        right: '-8px',
+                        backgroundColor: '#1890ff',
+                        color: 'white',
+                        borderRadius: '50%',
+                        width: '20px',
+                        height: '20px',
+                        fontSize: '12px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center'
+                      }}>
+                        •
+                      </div>
+                    )}
                     <div style={{ fontSize: '12px', color: '#666', marginBottom: '4px' }}>
                       {dayName}
                     </div>
                     <div style={{ fontSize: '18px', fontWeight: 'bold', marginBottom: '4px' }}>
                       {dayNum}
                     </div>
-                    <div style={{ fontSize: '14px', color: '#333' }}>
-                      {review.count}
+                    <div style={{ fontSize: '14px', color: '#333', fontWeight: review.count > 0 ? 'bold' : 'normal' }}>
+                      {review.count} từ
                     </div>
                   </div>
                 );
               })}
+            </div>
+            <div style={{ display: 'flex', gap: '12px', alignItems: 'center', fontSize: '12px', color: '#666', justifyContent: 'center' }}>
+              <span>Ít</span>
+              <div style={{ width: '20px', height: '20px', backgroundColor: '#f0f0f0', borderRadius: '4px' }}></div>
+              <div style={{ width: '20px', height: '20px', backgroundColor: '#d4edda', borderRadius: '4px' }}></div>
+              <div style={{ width: '20px', height: '20px', backgroundColor: '#a8d5ba', borderRadius: '4px' }}></div>
+              <div style={{ width: '20px', height: '20px', backgroundColor: '#7bc96f', borderRadius: '4px' }}></div>
+              <div style={{ width: '20px', height: '20px', backgroundColor: '#52c41a', borderRadius: '4px' }}></div>
+              <span>Nhiều</span>
             </div>
           </Card>
         </Col>
@@ -301,6 +389,94 @@ const ReviewDashboard = () => {
           </Row>
         </Card>
       )}
+
+      {/* Modal hiển thị danh sách từ cần ôn */}
+      <Modal
+        title={
+          <div style={{ fontSize: '20px', fontWeight: 'bold' }}>
+            📚 Từ cần ôn ngày {selectedDate ? new Date(selectedDate).toLocaleDateString('vi-VN') : ''} ({vocabDueList?.total || 0} từ)
+          </div>
+        }
+        open={showVocabModal}
+        onCancel={() => setShowVocabModal(false)}
+        width={800}
+        footer={[
+          <Button key="close" onClick={() => setShowVocabModal(false)}>
+            Đóng
+          </Button>,
+          <Button
+            key="start"
+            type="primary"
+            onClick={() => {
+              setShowVocabModal(false);
+              navigate('review/vocab');
+            }}
+          >
+            Bắt đầu ôn tập
+          </Button>
+        ]}
+      >
+        {loadingVocab ? (
+          <div style={{ textAlign: 'center', padding: '40px 0' }}>
+            <Spin size="large" />
+          </div>
+        ) : vocabDueList && vocabDueList.byTopic ? (
+          <div>
+            {vocabDueList.byTopic.map((topic, index) => (
+              <Card
+                key={index}
+                size="small"
+                style={{ marginBottom: '16px' }}
+                title={
+                  <div>
+                    <span style={{ fontSize: '18px' }}>
+                      {topic.icon} {topic.topicName}
+                    </span>
+                    <Tag color="blue" style={{ marginLeft: '8px' }}>
+                      {topic.count} từ
+                    </Tag>
+                  </div>
+                }
+              >
+                <List
+                  dataSource={topic.words}
+                  renderItem={(word) => (
+                    <List.Item>
+                      <div style={{ width: '100%' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <div>
+                            <span style={{ fontSize: '16px', fontWeight: 'bold', marginRight: '8px' }}>
+                              {word.word}
+                            </span>
+                            {word.pronunciation && (
+                              <span style={{ color: '#666', fontSize: '14px' }}>
+                                {word.pronunciation}
+                              </span>
+                            )}
+                          </div>
+                          <div>
+                            <Tag color={word.overdue ? 'red' : 'orange'}>
+                              {word.level}
+                            </Tag>
+                            {word.overdue && (
+                              <Tag color="red">Quá hạn</Tag>
+                            )}
+                          </div>
+                        </div>
+                        <div style={{ color: '#666', marginTop: '4px' }}>
+                          {word.meaning}
+                        </div>
+                      </div>
+                    </List.Item>
+                  )}
+                />
+              </Card>
+            ))}
+          </div>
+        ) : (
+          <Empty description="Không có từ nào cần ôn" />
+        )}
+      </Modal>
     </div>
   );
 };

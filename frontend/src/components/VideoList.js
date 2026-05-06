@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 
+const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api/v1';
+
 const VideoList = ({ onSelectVideo }) => {
   const [videos, setVideos] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -8,13 +10,17 @@ const VideoList = ({ onSelectVideo }) => {
   useEffect(() => {
     const fetchVideos = async () => {
       try {
-        const res = await axios.get('http://localhost:5000/api/v1/videos', {
+        const res = await axios.get(`${API_URL}/videos`, {
           headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
         });
+        console.log('Videos API response:', res.data);
+        console.log('Videos array:', res.data.data);
+        console.log('Videos count:', res.data.data.length);
         setVideos(res.data.data);
         setLoading(false);
       } catch (error) {
         console.error('Error fetching videos', error);
+        console.error('Error details:', error.response?.data);
         setLoading(false);
       }
     };

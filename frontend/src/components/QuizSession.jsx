@@ -26,8 +26,10 @@ const QuizSession = () => {
   const [selectedAnswer, setSelectedAnswer] = useState('');
   const [showExplanation, setShowExplanation] = useState(false);
   const [isCorrect, setIsCorrect] = useState(null);
-  const [startTime, setStartTime] = useState(Date.now());
-  const [questionStartTime, setQuestionStartTime] = useState(Date.now());
+  const [startTime, setStartTime] = useState(null);
+  const [questionStartTime, setQuestionStartTime] = useState(null);
+  const [elapsedTime, setElapsedTime] = useState(0);
+  const [timerInterval, setTimerInterval] = useState(null);
   const [xpEarned, setXpEarned] = useState(0);
   const [showResult, setShowResult] = useState(false);
   const [result, setResult] = useState(null);
@@ -42,13 +44,37 @@ const QuizSession = () => {
     fetchQuiz({ type, count, level, topicId });
   }, []);
 
+  // Timer effect - only runs when timer is active
+  useEffect(() => {
+    if (startTime && !showExplanation) {
+      const interval = setInterval(() => {
+        setElapsedTime(Math.floor((Date.now() - startTime) / 1000));
+      }, 1000);
+      setTimerInterval(interval);
+      return () => clearInterval(interval);
+    } else if (timerInterval) {
+      clearInterval(timerInterval);
+    }
+  }, [startTime, showExplanation]);
+
+  // Start timer on first interaction
+  const startTimer = () => {
+    if (!startTime) {
+      setStartTime(Date.now());
+      setQuestionStartTime(Date.now());
+    }
+  };
+
   const fetchQuiz = async (params) => {
     try {
       setLoading(true);
       const response = await generateQuiz(params);
       if (response.success) {
         setQuiz(response.data);
-        setQuestionStartTime(Date.now());
+        // Don't start timer yet - wait for user interaction
+        setStartTime(null);
+        setQuestionStartTime(null);
+        setElapsedTime(0);
       }
     } catch (error) {
       console.error('Failed to generate quiz:', error);
@@ -65,7 +91,7 @@ const QuizSession = () => {
     }
 
     const currentQuestion = quiz.questions[currentIndex];
-    const timeSpent = Date.now() - questionStartTime;
+    const timeSpent = questionStartTime ? Date.now() - questionStartTime : 0;
     let correct = false;
 
     if (currentQuestion.question_type === 'multiple_choice') {
@@ -136,7 +162,10 @@ const QuizSession = () => {
           </h2>
           <Radio.Group
             value={selectedAnswer}
-            onChange={(e) => setSelectedAnswer(e.target.value)}
+            onChange={(e) => {
+              startTimer();
+              setSelectedAnswer(e.target.value);
+            }}
             style={{ width: '100%' }}
             disabled={showExplanation}
           >
@@ -158,7 +187,12 @@ const QuizSession = () => {
                         ? '#e6f7ff'
                         : 'white'
                     }}
-                    onClick={() => !showExplanation && setSelectedAnswer(option)}
+                    onClick={() => {
+                      if (!showExplanation) {
+                        startTimer();
+                        setSelectedAnswer(option);
+                      }
+                    }}
                   >
                     <Radio value={option} style={{ width: '100%' }}>
                       <span style={{ fontSize: '16px', marginLeft: '8px' }}>{option}</span>
@@ -183,7 +217,10 @@ const QuizSession = () => {
             size="large"
             placeholder="Nhập câu trả lời..."
             value={selectedAnswer}
-            onChange={(e) => setSelectedAnswer(e.target.value)}
+            onChange={(e) => {
+              startTimer();
+              setSelectedAnswer(e.target.value);
+            }}
             disabled={showExplanation}
             onPressEnter={handleAnswer}
             style={{ fontSize: '18px', textAlign: 'center' }}
@@ -328,7 +365,7 @@ const QuizSession = () => {
         </div>
         <div>
           <ClockCircleOutlined style={{ marginRight: '8px' }} />
-          {Math.floor((Date.now() - startTime) / 1000)}s
+          {startTime ? `${elapsedTime}s` : '0s'}
         </div>
       </div>
 

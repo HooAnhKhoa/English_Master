@@ -23,15 +23,12 @@ exports.getDashboard = async (req, res) => {
     const weekAgo = new Date(today);
     weekAgo.setDate(weekAgo.getDate() - 7);
 
-    // 1. Due today (vocab + lessons with next_review <= tomorrow)
-    const tomorrow = new Date(today);
-    tomorrow.setDate(tomorrow.getDate() + 1);
-
+    // 1. Due today (vocab + lessons with next_review <= now)
     const dueVocab = await UserProgress.count({
       where: {
         user_id: userId,
         type: 'vocabulary',
-        next_review: { [Op.lte]: tomorrow },
+        next_review: { [Op.lte]: now },
         status: { [Op.ne]: 'mastered' }
       }
     });
@@ -40,7 +37,7 @@ exports.getDashboard = async (req, res) => {
       where: {
         user_id: userId,
         type: 'lesson',
-        next_review: { [Op.lte]: tomorrow },
+        next_review: { [Op.lte]: now },
         status: { [Op.ne]: 'mastered' }
       }
     });
@@ -94,6 +91,7 @@ exports.getDashboard = async (req, res) => {
         const topicId = progress.vocabulary.topic.id;
         if (!topicStats[topicId]) {
           topicStats[topicId] = {
+            topicId: topicId,
             type: 'topic',
             name: progress.vocabulary.topic.name,
             name_vi: progress.vocabulary.topic.name_vi,
@@ -108,6 +106,7 @@ exports.getDashboard = async (req, res) => {
 
     const weakAreas = Object.values(topicStats)
       .map(stat => ({
+        topicId: stat.topicId,
         type: stat.type,
         name: stat.name,
         name_vi: stat.name_vi,
